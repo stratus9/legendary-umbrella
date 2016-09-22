@@ -1,0 +1,26 @@
+﻿ISR enabled:
+-RTC OVF	-low
+-Timer C OVF	-med
+-Timer E OVF	-med
+-Timer F OVF	-med
+-USART C RX		-med
+-USART C TX		-low
+-USART D RX		-low
+-USART D TX		-hi
+-Timer D OVF	-low
+
+
+ISR used:
+-USART C TX?
+-USART C RX?
+-USART D TX
+-USART D RX
+-Timer C OVF
+-Timer E OVF - commented
+-Timer F OVF - commented
+
+Bad ISRs:
+-RTC OVF
+
+To do:
+-DS18B20 in separated Timer ISR

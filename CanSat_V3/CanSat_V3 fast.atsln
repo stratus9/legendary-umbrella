@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Atmel Studio Solution File, Format Version 11.00
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "CanSat_V3 - 1kHz", "CanSat_V3\CanSat_V3 - 1kHz.cproj", "{52086D25-5878-442E-BF80-EE0F421B03EF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{52086D25-5878-442E-BF80-EE0F421B03EF}.Debug|AVR.ActiveCfg = Release|AVR
+		{52086D25-5878-442E-BF80-EE0F421B03EF}.Debug|AVR.Build.0 = Release|AVR
+		{52086D25-5878-442E-BF80-EE0F421B03EF}.Release|AVR.ActiveCfg = Debug|AVR
+		{52086D25-5878-442E-BF80-EE0F421B03EF}.Release|AVR.Build.0 = Debug|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
