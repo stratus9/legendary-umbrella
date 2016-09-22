@@ -1,2 +1,0 @@
-﻿-Zmiany w ADC dla pomiaru napięcia baterii - z diff na single
--wywalić opóźnienie z pętli głównej -> przenieść do jakiegoś przerwania albo dodać szybki warunek z inkrementacją w głównej pętli
