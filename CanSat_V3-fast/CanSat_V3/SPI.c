@@ -111,7 +111,7 @@ void SPI_WriteByte(uint32_t address, uint8_t data){
 	SPI_W_Byte(address & 0xFF);			//address LSB
 	SPI_W_Byte(data);					//dane do zapisu
 	SPI_CS(false);
-	SPI_WriteDisable();
+	//SPI_WriteDisable();
 }
 
 void SPI_WriteProtection(bool block){
@@ -217,11 +217,12 @@ uint32_t SPI_FindEnd(void){
 void SPI_WriteFrame(uint32_t * adres, uint16_t frame_length, struct frame_t * frame){
 	uint32_t i = 0;
 	if((*adres) < 4194000){
+		PORTA_OUTSET = PIN2_bm;
 		while((frame->frameASCII[i]) && (i<frame_length)){
 			SPI_WriteByte((*adres),frame->frameASCII[i++]);
 			SPI_WriteFin();
 			(*adres)++;			//address increment
-			PORTA_OUTTGL = PIN2_bm;
 		}
+		PORTA_OUTCLR = PIN2_bm;
 	}
 }

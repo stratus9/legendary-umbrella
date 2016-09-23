@@ -559,6 +559,10 @@ void WarmUpMemoryOperations() {
     else if(!(PORTE.IN & PIN1_bm)) InitMemoryRead();
 }
 
+void DetectInitOrientation(void){
+	//napisaæ funkcjê wykrywaj¹c¹ orientacjê na starcie
+}
+
 void CalibrationStart() {
     Calibration_d.counter = 0;
     Calibration_d.trigger = true;		//zdalna kalibracja czujników
