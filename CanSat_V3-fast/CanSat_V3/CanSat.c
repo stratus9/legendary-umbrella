@@ -40,6 +40,7 @@
 //-----------------------------------Struktury globalne---------------------------------------------
 static SensorsData_t SensorData_d;
 static SensorsData_t SensorData_b;
+static allData_t allData_d;
 static MPU9150_t MPU9150_d;
 static LSM9DS0_t LSM9DS0_d;
 static stan_t stan_d;
@@ -319,20 +320,22 @@ void SensorCal(void) {
 }
 
 void structInit(void) {
-    MPU9150_d.offset_gyro_x = -2318;
-    MPU9150_d.offset_gyro_y = 1989;
-    MPU9150_d.offset_gyro_z = -591;
-    MPU9150_d.offset_accel_x = 0;
-    MPU9150_d.offset_accel_y = 0;
-    MPU9150_d.offset_accel_z = 0;
-    LPS25H_d.start_pressure = 1008;
     frame_d.iUART = 0;
     frame_d.r_count = 0;
     stan_d.new_data = false;
     stan_d.new_frame = false;
-	ADC_Read(&ADC_d);
-	frame_b.r_voltage = ADC_d.Vsense;
-	frame_b.vcc = ADC_d.VCC;
+	
+	//----------------------Initialize allData_d--------------------
+	allData_d.Analog = &ADC_d;
+	allData_d.MPU9150 = &MPU9150_d;
+	allData_d.LSM9DS0 = &LSM9DS0_d;
+	allData_d.LPS25H = &LPS25H_d;
+	allData_d.GPS = &GPS_d;
+	allData_d.stan = &stan_d;
+	allData_d.LIS331HH = &LIS331HH_d;
+	allData_d.SensorsData = &SensorData_d;
+	allData_d.frame = &frame_d;
+	allData_d.frame_b = &frame_b;
 }
 
 void BT_Start(frame_t * frame) {
@@ -561,11 +564,11 @@ void WarmUpMemoryOperations() {
     else if(!(PORTE.IN & PIN1_bm)) InitMemoryRead();
 }
 
-void DetectInitOrientation(void){
+void DetectInitOrientation(allData_t * allData){
 	//napisaæ funkcjê wykrywaj¹c¹ orientacjê na starcie
 }
 
-void SensorDataFusion(){
+void SensorDataFusion(allData_t * allData){
 	//fuzja danych z czujników
 }
 

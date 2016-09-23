@@ -226,10 +226,6 @@ typedef struct SensorsData_s{
 	uint8_t softwareState;	
 } SensorsData_t;
 
-typedef struct allData_s{
-	
-} allData_t;
-
 //------------------------FRAME--------------------------------------------------
 typedef struct frame_s{
 	char frameASCII[600];
@@ -385,4 +381,17 @@ typedef struct buzzer_s{
 	uint8_t count;
 } buzzer_t;
 		
+typedef struct allData_s{
+	MPU9150_t * MPU9150;
+	LSM9DS0_t * LSM9DS0;
+	LPS25H_t * LPS25H;
+	GPS_t * GPS;
+	Analog_t * Analog;
+	stan_t * stan;
+	LIS331HH_t * LIS331HH;
+	SensorsData_t * SensorsData;
+	frame_t * frame;
+	frame_t * frame_b;
+} allData_t;
+
 #endif /* STRUCT_H_ */
