@@ -564,8 +564,42 @@ void WarmUpMemoryOperations() {
     else if(!(PORTE.IN & PIN1_bm)) InitMemoryRead();
 }
 
-void DetectInitOrientation(allData_t * allData){
+bool DetectInitOrientation(allData_t * allData){
 	//napisaæ funkcjê wykrywaj¹c¹ orientacjê na starcie
+	//----Local variable------------------------------------------------
+	float accTotal = 0;
+	float mean_accX = 0;
+	float mean_accY = 0;
+	float mean_accZ = 0;
+	
+	//----Attach local pointer to main data struct----------------------
+	float * accX = &(allData->SensorsData->accel_x);
+	float * accY = &(allData->SensorsData->accel_y);
+	float * accZ = &(allData->SensorsData->accel_z);
+	
+	//-------Update all sensors data and calculate mean from n sample----
+	for(uint8_t i=0;i<100;i++){
+		SensorUpdate();
+		mean_accX += *accX;
+		mean_accY += *accY;
+		mean_accZ += *accZ;
+	}
+	mean_accX /= 100;
+	mean_accY /= 100;
+	mean_accZ /= 100;
+	accTotal = VectorLength3D(*accX, *accY, *accZ);
+	
+	//-------Check for errors---------------------------------------------
+	if((abs(accTotal) < 0.9) || (abs(accTotal) > 1.1)) return 1;
+	
+	//-------Determine main orientation-----------------------------------
+	if((mean_accX > mean_accY) && (mean_accX > mean_accZ)){}
+	else if((mean_accY > mean_accX) && (mean_accY > mean_accZ)){}
+	else {};
+	
+	//-------Calculate launchpad angle------------------------------------
+	MinAngleVector3D(mean_accX,mean_accY,mean_accZ);
+	return 0;
 }
 
 void SensorDataFusion(allData_t * allData){

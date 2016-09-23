@@ -205,18 +205,18 @@ typedef struct IO_s{
 } IO_t;
 	
 typedef struct SensorsData_s{
-	float accel_x;
-	float accel_y;
-	float accel_z;
-	float axisVelo;
-	float ascentVelo;
-	float altitude;
-	float gyro_x;
-	float gyro_y;
-	float gyro_z;
+	float accel_x;		//rocket main axis
+	float accel_y;		//rocket second axis
+	float accel_z;		//rocket third axis
+	float axisVelo;		//total velocity based on Acc or/and GPS
+	float ascentVelo;	//ascend velocity based on Press or/and GPS
+	float altitude;		//altitude from the ground
+	float gyro_x;		//rotation rate in main axis
+	float gyro_y;		//rotation rate in second axis
+	float gyro_z;		//rotation rate in third axis
 	float batVoltage;
-	float inTemp;
-	float outTemp;
+	float inTemp;		//on-board highest mean temperature or overheated element temperature
+	float outTemp;		//external temperature sensor data
 	char latitude[13];
 	char longitude[13];
 	char fix;

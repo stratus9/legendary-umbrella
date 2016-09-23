@@ -85,7 +85,7 @@ void USART_SendCache(void);
 uint8_t I2C_ReadEnd(bool koniec);
 void structInit(void);
 void Initialization(void);
-void DetectInitOrientation(allData_t *);
+bool DetectInitOrientation(allData_t *);
 void SensorDataFusion(allData_t *);
 void UpdateFW(void);
 void TempUpdate(DS18B20_t *, frame_t *);

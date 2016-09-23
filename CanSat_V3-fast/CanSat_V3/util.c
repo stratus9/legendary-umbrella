@@ -823,3 +823,27 @@ void maxAcc(frame_t * dane){
 	if(dane->MPU9150_sumacc > dane->LIS331HH_sumacc) dane->max_acc = dane->MPU9150_sumacc;
 	else dane->max_acc = dane->LIS331HH_sumacc;
 }
+
+float MinAngleVector3D(float x, float y, float z){
+	float dot, length,cosa, angle1, angle2, angle3;
+	//-----assume reference [1, 0 ,0]-------------------------
+	dot = fabs(x);
+	length = VectorLength3D(x,y,z);
+	cosa = dot/length;
+	angle1 = acos(cosa)/3.14*180.0;
+	//-----assume reference [0, 1 ,0]-------------------------
+	dot = fabs(y);
+	length = VectorLength3D(x,y,z);
+	cosa = dot/length;
+	angle2 = acos(cosa)/3.14*180.0;
+	//-----assume reference [0, 0 ,1]-------------------------
+	dot = fabs(z);
+	length = VectorLength3D(x,y,z);
+	cosa = dot/length;
+	angle3 = acos(cosa)/3.14*180.0;
+	//-----compare--------------------------------------------
+	if((angle1 <= angle2) && (angle1 <= angle3)) return angle1;
+	else if((angle2 <= angle1) && (angle2 <= angle3)) return angle2;
+	else if((angle3 <= angle2) && (angle3 <= angle1)) return angle3;
+	else return 0;
+}
