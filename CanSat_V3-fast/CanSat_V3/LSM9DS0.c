@@ -83,7 +83,7 @@ void LSM9DS0_Init(void){
 	SENSORS_I2C.MASTER.CTRLC = TWI_MASTER_CMD_STOP_gc;
 }
 
-void LSM9DS0_Update(struct LSM9DS0_t * dane){
+void LSM9DS0_Update(LSM9DS0_t * dane){
 	
 	//GYRO update
 	SENSORS_I2C.MASTER.ADDR = 0xD4;

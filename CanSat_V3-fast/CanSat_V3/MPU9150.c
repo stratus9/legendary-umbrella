@@ -31,7 +31,7 @@ uint8_t MPU9150_WhoAmI(void){
 }
 
 //----------------------------Odczyt danych z czujnika---------------------
-void MPU9150_RawUpdate(struct MPU9150_t * data){
+void MPU9150_RawUpdate(MPU9150_t * data){
 	uint8_t bufor[20];
 	I2C_ReadRegister(0xD0, 0x3B, 14, bufor);
 	
@@ -61,7 +61,7 @@ void MPU9150_MagInit(void){
 void MPU9150_MagStartConv(void){
 	MPU9150_MagRegWrite(0x0A, 0x01);
 }
-void MPU9150_MagUpdate(struct MPU9150_t * data){
+void MPU9150_MagUpdate(MPU9150_t * data){
 	uint16_t tmp1, tmp2, tmp3;
 	
 	SENSORS_I2C.MASTER.ADDR = 0x18;
@@ -85,14 +85,14 @@ void MPU9150_MagUpdate(struct MPU9150_t * data){
 }
 
 //------------------------Konwersja pomaiarów magnetometru na jednostki inŸ----------------------
-void MPU9150_MagCalc(struct MPU9150_t * data){
+void MPU9150_MagCalc(MPU9150_t * data){
 	(*data).mag_x = ((*data).raw_mag_x + (((*data).raw_mag_x * (*data).sens_mag_x) >> 8)) * 3;
 	(*data).mag_y = ((*data).raw_mag_y + (((*data).raw_mag_y * (*data).sens_mag_y) >> 8)) * 3;
 	(*data).mag_z = ((*data).raw_mag_z + (((*data).raw_mag_z * (*data).sens_mag_z) >> 8)) * 3;
 }
 
 //-----------------------Kalibracja magnetometru-------------------------------------------------
-void MPU9150_MagCal(struct MPU9150_t * data){
+void MPU9150_MagCal(MPU9150_t * data){
 	MPU9150_MagRegWrite(0x0A, 0x00);		//powerdown mode
 	_delay_us(100);
 	MPU9150_MagRegWrite(0x0A, 0xFF);		//Fuse ROM mode
@@ -124,7 +124,7 @@ void MPU9150_MagCal(struct MPU9150_t * data){
 	(*data).sens_mag_z = z;
 }
 
-void MPU9150_Conv(struct MPU9150_t * MPU9150,struct frame_t * frame){
+void MPU9150_Conv(MPU9150_t * MPU9150,frame_t * frame){
 	(*MPU9150).mag_x = ((*MPU9150).raw_mag_x + (((*MPU9150).raw_mag_x * (*MPU9150).sens_mag_x) >> 8)) * 0.3;
 	(*MPU9150).mag_y = ((*MPU9150).raw_mag_y + (((*MPU9150).raw_mag_y * (*MPU9150).sens_mag_y) >> 8)) * 0.3;
 	(*MPU9150).mag_z = ((*MPU9150).raw_mag_z + (((*MPU9150).raw_mag_z * (*MPU9150).sens_mag_z) >> 8)) * 0.3;

@@ -25,7 +25,7 @@ void LPS25H_config(void){
 	I2C_WriteReg(0xB8,0x20,0xC0);
 }
 
-void LPS25H_update(struct LPS25H_t * LPS25H){
+void LPS25H_update(LPS25H_t * LPS25H){
 	uint8_t bufor123[10];
 	I2C_ReadRegister(0xB8, (0x28 | 0x80), 5, bufor123);
 	
@@ -33,7 +33,7 @@ void LPS25H_update(struct LPS25H_t * LPS25H){
 	LPS25H->raw_temp = bufor123[3] | (bufor123[4]<<8);
 }
 
-void LPS25H_calc(struct LPS25H_t * LPS25H, struct frame_t * frame){
+void LPS25H_calc(LPS25H_t * LPS25H, frame_t * frame){
 	float x1;
 	x1 = LPS25H->raw_pressure;
 	LPS25H->pressure = x1/4096.0;

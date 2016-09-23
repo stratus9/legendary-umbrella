@@ -31,7 +31,7 @@ void float2char(float number,char * tablica){
 	*(tablica+6) = ((tmp%10)) + 48;
 }
 
-void prepareFrame(struct frame_t *  frame, struct stan_t *  stan, struct GPS_t * gps){
+void prepareFrame(frame_t *  frame, stan_t *  stan, GPS_t * gps){
 	volatile int16_t i,tmp,tmpf;
 	volatile uint32_t tmp_long;
 	i=0;
@@ -557,7 +557,7 @@ void prepareFrame(struct frame_t *  frame, struct stan_t *  stan, struct GPS_t *
 	frame->frameASCII[i++] = 'X';
 }
 
-char ringBuffer_read(struct ringBuffer_t * bufor){
+char ringBuffer_read(ringBuffer_t * bufor){
 	char tmp;
 	if((((*bufor).bufferEnd - (*bufor).bufferStart) != 0) && ((*bufor).mutex == false)){
 		tmp = (*bufor).data[(*bufor).bufferStart];
@@ -568,7 +568,7 @@ char ringBuffer_read(struct ringBuffer_t * bufor){
 	return tmp;
 }
 
-bool ringBuffer_addChar(struct ringBuffer_t * bufor, char value){
+bool ringBuffer_addChar(ringBuffer_t * bufor, char value){
 	if(((*bufor).bufferFull == false) && ((*bufor).mutex == false)){
 		(*bufor).mutex = true;
 		(*bufor).data[(*bufor).bufferEnd] = value;
@@ -580,7 +580,7 @@ bool ringBuffer_addChar(struct ringBuffer_t * bufor, char value){
 	else return true;
 }
 
-bool ringBuffer_addString(struct ringBuffer_t * bufor, char * text, uint16_t text_length){
+bool ringBuffer_addString(ringBuffer_t * bufor, char * text, uint16_t text_length){
 	if(((*bufor).bufferFull == false) && ((text_length + (*bufor).bufferFull) < 495) && ((*bufor).mutex == false)){
 		(*bufor).mutex = true;
 		while(*text){
@@ -592,12 +592,12 @@ bool ringBuffer_addString(struct ringBuffer_t * bufor, char * text, uint16_t tex
 	else return true;
 }
 
-bool purgeBuffer(struct ringBuffer_t * bufor){
+bool purgeBuffer(ringBuffer_t * bufor){
 	(*bufor).bufferEnd = 0;
 	return false;
 }
 
-bool GPSdecode(struct ringBuffer_t * bufor, struct GPS_t * gps){
+bool GPSdecode(ringBuffer_t * bufor, GPS_t * gps){
 	/*
 	//first parese
 	int i=0;
@@ -626,7 +626,7 @@ int NMEAchecksum(char *s) {
 	return c;
 }
 
-void decodeNMEA(struct GPS_t * GPS, struct ringBuffer_t * GPSbuf){
+void decodeNMEA(GPS_t * GPS, ringBuffer_t * GPSbuf){
 	/*
 	uint8_t i = 0;
 	uint16_t tmp = 0;
@@ -748,7 +748,7 @@ void decodeNMEA(struct GPS_t * GPS, struct ringBuffer_t * GPSbuf){
 	 */
 }
 
-void altitudeCalc(struct BMP085_t * BMP085, struct frame_t * frame){
+void altitudeCalc(BMP085_t * BMP085, frame_t * frame){
 	//frame->r_altitude = press;
 	//volatile float tmp1, tmp2, tmp3, press, start_press;
 	//press = BMP085->pressure;
@@ -762,7 +762,7 @@ void altitudeCalc(struct BMP085_t * BMP085, struct frame_t * frame){
 	//frame->dif_altitude = frame->dif_altitude*0.9 + (frame->r_altitude-old_altitude)*0.1;
 }
 
-void altitudeCalcLPS(struct LPS25H_t * LPS25H, struct frame_t * frame){
+void altitudeCalcLPS(LPS25H_t * LPS25H, frame_t * frame){
 	volatile float new_altitude, press, start_press;
 	press = LPS25H->pressure;
 	start_press = LPS25H->start_pressure;
@@ -774,7 +774,7 @@ void altitudeCalcLPS(struct LPS25H_t * LPS25H, struct frame_t * frame){
 	frame->LPS25H_velocity = frame->dif_altitude * sampling_rate;
 }
 
-void GPSbuf_init(struct GPS_t * gps){
+void GPSbuf_init(GPS_t * gps){
 	gps->altitude[0] = '0';
 	gps->altitude[1] = '0';
 	gps->altitude[2] = '0';
@@ -817,7 +817,7 @@ void GPSbuf_init(struct GPS_t * gps){
 	gps->fix = 0;
 }
 
-void maxAcc(struct frame_t * dane){
+void maxAcc(frame_t * dane){
 	dane->MPU9150_sumacc = abs(dane->MPU9150_accel_x)+abs(dane->MPU9150_accel_x)+abs(dane->MPU9150_accel_x);
 	dane->LIS331HH_sumacc = abs(dane->LIS331HH_accel_x)+abs(dane->LIS331HH_accel_x)+abs(dane->LIS331HH_accel_x);
 	if(dane->MPU9150_sumacc > dane->LIS331HH_sumacc) dane->max_acc = dane->MPU9150_sumacc;

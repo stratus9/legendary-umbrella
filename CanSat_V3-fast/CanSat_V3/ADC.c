@@ -13,7 +13,7 @@
 #include "struct.h"
 #include "ADC.h"
 
-void ADC_Read(struct ADC_t * dane){
+void ADC_Read(Analog_t * dane){
 	ADCA.CH0.CTRL |= ADC_CH_INPUTMODE_SINGLEENDED_gc;	//singleended
 	//sensor 1
 	//ADCA_CH0_CTRL = ADC_CH_INPUTMODE_DIFFWGAIN_gc | ADC_CH_GAIN_1X_gc;

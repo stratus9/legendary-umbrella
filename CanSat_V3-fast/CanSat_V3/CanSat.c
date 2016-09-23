@@ -38,18 +38,20 @@
 
 
 //-----------------------------------Struktury globalne---------------------------------------------
-static struct MPU9150_t MPU9150_d;
-static struct LSM9DS0_t LSM9DS0_d;
-static struct stan_t stan_d;
-struct ADC_t ADC_d;
-static struct frame_t frame_d;
-static struct frame_t frame_b;
-static struct GPS_t GPS_b;
-static struct GPS_t GPS_d;
-static struct LPS25H_t LPS25H_d;
-static struct LIS331HH_t LIS331HH_d;
-static struct Calibration_t Calibration_d;
-static struct buzzer_t buzzer_d;
+static SensorsData_t SensorData_d;
+static SensorsData_t SensorData_b;
+static MPU9150_t MPU9150_d;
+static LSM9DS0_t LSM9DS0_d;
+static stan_t stan_d;
+Analog_t ADC_d;
+static frame_t frame_d;
+static frame_t frame_b;
+static GPS_t GPS_b;
+static GPS_t GPS_d;
+static LPS25H_t LPS25H_d;
+static LIS331HH_t LIS331HH_d;
+static Calibration_t Calibration_d;
+static buzzer_t buzzer_d;
 static uint32_t SPIaddress = 0;
 static float timer_buffer = 0;
 uint32_t mission_time = 0;
@@ -333,7 +335,7 @@ void structInit(void) {
 	frame_b.vcc = ADC_d.VCC;
 }
 
-void BT_Start(struct frame_t * frame) {
+void BT_Start(frame_t * frame) {
     int i = 0;
     frame->frameASCII[i++] = '\r';	//\r\n+INQ=1\r\n
     frame->frameASCII[i++] = '\n';
@@ -561,6 +563,10 @@ void WarmUpMemoryOperations() {
 
 void DetectInitOrientation(void){
 	//napisaæ funkcjê wykrywaj¹c¹ orientacjê na starcie
+}
+
+void SensorDataFusion(){
+	//fuzja danych z czujników
 }
 
 void CalibrationStart() {
