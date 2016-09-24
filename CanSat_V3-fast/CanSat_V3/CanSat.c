@@ -13,6 +13,7 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <util/atomic.h>
+#include <math.h>
 #include "Initialization.h"
 #include "struct.h"
 #include "CanSat.h"
@@ -41,6 +42,7 @@
 static SensorsData_t SensorData_d;
 static SensorsData_t SensorData_b;
 static allData_t allData_d;
+static boardOrient_t boardOrient_d;
 static MPU9150_t MPU9150_d;
 static LSM9DS0_t LSM9DS0_d;
 static stan_t stan_d;
@@ -57,6 +59,7 @@ static uint32_t SPIaddress = 0;
 static float timer_buffer = 0;
 uint32_t mission_time = 0;
 uint32_t frame_count = 0;
+
 
 //----------------------Bad ISR handling------------------------
 ISR(BADISR_vect) {
@@ -336,6 +339,7 @@ void structInit(void) {
 	allData_d.SensorsData = &SensorData_d;
 	allData_d.frame = &frame_d;
 	allData_d.frame_b = &frame_b;
+	allData_d.boardOrient = &boardOrient_d;
 }
 
 void BT_Start(frame_t * frame) {
@@ -571,6 +575,9 @@ bool DetectInitOrientation(allData_t * allData){
 	float mean_accX = 0;
 	float mean_accY = 0;
 	float mean_accZ = 0;
+	float abs_mean_accX = 0;
+	float abs_mean_accY = 0;
+	float abs_mean_accZ = 0;
 	
 	//----Attach local pointer to main data struct----------------------
 	float * accX = &(allData->SensorsData->accel_x);
@@ -584,26 +591,121 @@ bool DetectInitOrientation(allData_t * allData){
 		mean_accY += *accY;
 		mean_accZ += *accZ;
 	}
-	mean_accX /= 100;
-	mean_accY /= 100;
-	mean_accZ /= 100;
+	mean_accX /= 100.0;
+	mean_accY /= 100.0;
+	mean_accZ /= 100.0;
 	accTotal = VectorLength3D(*accX, *accY, *accZ);
+	abs_mean_accX = fabs(mean_accX);
+	abs_mean_accY = fabs(mean_accY);
+	abs_mean_accZ = fabs(mean_accZ);
 	
 	//-------Check for errors---------------------------------------------
 	if((abs(accTotal) < 0.9) || (abs(accTotal) > 1.1)) return 1;
 	
 	//-------Determine main orientation-----------------------------------
-	if((mean_accX > mean_accY) && (mean_accX > mean_accZ)){}
-	else if((mean_accY > mean_accX) && (mean_accY > mean_accZ)){}
-	else {};
+	if((abs_mean_accX > abs_mean_accY) && (abs_mean_accX > abs_mean_accZ)) allData->boardOrient->config = 1;		//X axis = main
+	else if((abs_mean_accY > abs_mean_accX) && (abs_mean_accY > abs_mean_accZ)) allData->boardOrient->config = 2;	//Y axis = main
+	else allData->boardOrient->config = 3;																			//Z axis = main
+	
+	switch(allData->boardOrient->config){
+		case 1: if(mean_accX < 0) allData->boardOrient->invert = true; break;
+		case 2: if(mean_accY < 0) allData->boardOrient->invert = true; break;
+		case 3: if(mean_accZ < 0) allData->boardOrient->invert = true; break;
+	}
 	
 	//-------Calculate launchpad angle------------------------------------
-	MinAngleVector3D(mean_accX,mean_accY,mean_accZ);
+	MinAngleVector3D(abs_mean_accX, abs_mean_accY, abs_mean_accZ);
 	return 0;
 }
 
 void SensorDataFusion(allData_t * allData){
-	//fuzja danych z czujników
+	//fuzja danych z czujników - na pocz¹tek tylko akcelerometry
+	//--------Pointer to correct data------------------------------
+	float MPU9150_accel_x;
+	float MPU9150_accel_y;
+	float MPU9150_accel_z;
+	float MPU9150_gyro_x;
+	float MPU9150_gyro_y;
+	float MPU9150_gyro_z;
+	float LSM9DS0_accel_x;
+	float LSM9DS0_accel_y;
+	float LSM9DS0_accel_z;
+	float LSM9DS0_gyro_x;
+	float LSM9DS0_gyro_y;
+	float LSM9DS0_gyro_z;
+	float LIS331HH_accel_x;
+	float LIS331HH_accel_y;
+	float LIS331HH_accel_z;
+	
+	//--------Sensor data router------------------------------------
+	switch(allData->boardOrient->config){
+		case 1:	//-----X sensor = main axis
+		default:
+		MPU9150_accel_x = allData->MPU9150->accel_x;
+		MPU9150_accel_y = allData->MPU9150->accel_y;
+		MPU9150_accel_z = allData->MPU9150->accel_z;
+		MPU9150_gyro_x = allData->MPU9150->gyro_x;
+		MPU9150_gyro_y = allData->MPU9150->gyro_y;
+		MPU9150_gyro_z = allData->MPU9150->gyro_z;
+		LSM9DS0_accel_x = allData->LSM9DS0->accel_x;
+		LSM9DS0_accel_y = allData->LSM9DS0->accel_y;
+		LSM9DS0_accel_z = allData->LSM9DS0->accel_z;
+		LSM9DS0_gyro_x = allData->LSM9DS0->gyro_x;
+		LSM9DS0_gyro_y = allData->LSM9DS0->gyro_y;
+		LSM9DS0_gyro_z = allData->LSM9DS0->gyro_z;
+		LIS331HH_accel_x = allData->LIS331HH->accel_x;
+		LIS331HH_accel_y = allData->LIS331HH->accel_y;
+		LIS331HH_accel_z = allData->LIS331HH->accel_z;
+		break;
+		case 2: //-----Y sensor = main axis
+		MPU9150_accel_x = allData->MPU9150->accel_y;
+		MPU9150_accel_y = allData->MPU9150->accel_x;
+		MPU9150_accel_z = allData->MPU9150->accel_z;
+		MPU9150_gyro_x = allData->MPU9150->gyro_y;
+		MPU9150_gyro_y = allData->MPU9150->gyro_x;
+		MPU9150_gyro_z = allData->MPU9150->gyro_z;
+		LSM9DS0_accel_x = allData->LSM9DS0->accel_y;
+		LSM9DS0_accel_y = allData->LSM9DS0->accel_x;
+		LSM9DS0_accel_z = allData->LSM9DS0->accel_z;
+		LSM9DS0_gyro_x = allData->LSM9DS0->gyro_y;
+		LSM9DS0_gyro_y = allData->LSM9DS0->gyro_x;
+		LSM9DS0_gyro_z = allData->LSM9DS0->gyro_z;
+		LIS331HH_accel_x = allData->LIS331HH->accel_y;
+		LIS331HH_accel_y = allData->LIS331HH->accel_x;
+		LIS331HH_accel_z = allData->LIS331HH->accel_z;
+		break;
+		case 3: //-----Z sensor = main axis
+		MPU9150_accel_x = allData->MPU9150->accel_z;
+		MPU9150_accel_y = allData->MPU9150->accel_y;
+		MPU9150_accel_z = allData->MPU9150->accel_x;
+		MPU9150_gyro_x = allData->MPU9150->gyro_z;
+		MPU9150_gyro_y = allData->MPU9150->gyro_y;
+		MPU9150_gyro_z = allData->MPU9150->gyro_x;
+		LSM9DS0_accel_x = allData->LSM9DS0->accel_z;
+		LSM9DS0_accel_y = allData->LSM9DS0->accel_y;
+		LSM9DS0_accel_z = allData->LSM9DS0->accel_x;
+		LSM9DS0_gyro_x = allData->LSM9DS0->gyro_z;
+		LSM9DS0_gyro_y = allData->LSM9DS0->gyro_y;
+		LSM9DS0_gyro_z = allData->LSM9DS0->gyro_x;
+		LIS331HH_accel_x = allData->LIS331HH->accel_z;
+		LIS331HH_accel_y = allData->LIS331HH->accel_y;
+		LIS331HH_accel_z = allData->LIS331HH->accel_x;
+		break;
+	}
+	// Rotate vector if up side down
+	if(allData->boardOrient->invert){
+		MPU9150_accel_x = -MPU9150_accel_x;
+		MPU9150_gyro_x = -MPU9150_gyro_x;
+	}
+	//-----Sensor fusion---------------------------------------
+	// Tu bêd¹ dziaæ siê czary
+	// Tymczsowo zwyk³e przepisanie zmiennych
+	allData->SensorsData->accel_x = MPU9150_accel_x;
+	allData->SensorsData->accel_y = MPU9150_accel_y;
+	allData->SensorsData->accel_z = MPU9150_accel_z;
+	allData->SensorsData->gyro_x = MPU9150_gyro_x;
+	allData->SensorsData->gyro_y = MPU9150_gyro_y;
+	allData->SensorsData->gyro_z = MPU9150_gyro_z;
 }
 
 void CalibrationStart() {
@@ -619,6 +721,7 @@ int main(void) {
     stan_d.telemetry_trigger = STARTUP_tele;
     frame_d.terminate = false;
     Initialization();
+	DetectInitOrientation(&allData_d);	//detect orientation and angle
     sei();
     WarmUp();					//inicjalizacja BT i odmiganie startu
     WarmUpMemoryOperations();	//odczyt lub kasowanie pamiêci
@@ -632,6 +735,7 @@ int main(void) {
             //============================================================================
             stan_d.new_data = false;	//DRY flag clear
             SensorUpdate();
+			SensorDataFusion(&allData_d);
             StateUpdate();
             //----------------Prepare frame---------
             prepareFrame(&frame_b, &stan_d, &GPS_d);

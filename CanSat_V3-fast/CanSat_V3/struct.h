@@ -380,6 +380,11 @@ typedef struct buzzer_s{
 	uint8_t i;
 	uint8_t count;
 } buzzer_t;
+
+typedef struct boardOrient_s{
+	uint8_t config;		//0-error, 1-Xaxis, 2-Yaxis, 3-Zaxis
+	bool invert;
+} boardOrient_t;
 		
 typedef struct allData_s{
 	MPU9150_t * MPU9150;
@@ -392,6 +397,7 @@ typedef struct allData_s{
 	SensorsData_t * SensorsData;
 	frame_t * frame;
 	frame_t * frame_b;
+	boardOrient_t * boardOrient;
 } allData_t;
 
 #endif /* STRUCT_H_ */
