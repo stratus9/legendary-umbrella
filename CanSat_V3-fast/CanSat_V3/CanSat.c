@@ -357,21 +357,24 @@ void BT_Start(frame_t * frame) {
     frame->iUART = 0;
 }
 
-void SensorUpdate(void) {
+void SensorUpdate(allData_t * allData) {
     //-----------------MPU9150--------------
-    MPU9150_RawUpdate(&MPU9150_d);
-    MPU9150_Conv(&MPU9150_d, &frame_b);
+    MPU9150_RawUpdate(allData->MPU9150);
+    MPU9150_Conv(allData->MPU9150, &frame_b);
     //-----------------LIS331HH-------------
-    LIS331HH_Update(&LIS331HH_d);
-    LIS331HH_Calc(&LIS331HH_d, &frame_b);
+    LIS331HH_Update(allData->LIS331HH);
+    LIS331HH_Calc(allData->LIS331HH, &frame_b);
     //-----------------LPS25H---------------
-    LPS25H_update(&LPS25H_d);
-    LPS25H_calc(&LPS25H_d, &frame_b);
-    altitudeCalcLPS(&LPS25H_d, &frame_b);
+    LPS25H_update(allData->LPS25H);
+    LPS25H_calc(allData->LPS25H, &frame_b);
+    altitudeCalcLPS(allData->LPS25H, &frame_b);
     //-----------------LSM9DS0--------------
-    LSM9DS0_Update(&LSM9DS0_d);
+    LSM9DS0_Update(allData->LSM9DS0);
     //-----------------Read ADC-------------
-    ADC_Read(&ADC_d);
+    ADC_Read(allData->Analog);
+	
+	
+	//do router i wywaliæ jak najwiêcej!
     frame_b.r_voltage = frame_b.r_voltage*(1.0-BAT_voltage_alpha) + ADC_d.Vsense*BAT_voltage_alpha;
 	frame_b.vcc = frame_b.vcc*(1.0-BAT_voltage_alpha) + ADC_d.VCC*BAT_voltage_alpha;
     //-----------------Additional-----------
@@ -586,7 +589,7 @@ bool DetectInitOrientation(allData_t * allData){
 	
 	//-------Update all sensors data and calculate mean from n sample----
 	for(uint8_t i=0;i<100;i++){
-		SensorUpdate();
+		SensorUpdate(&allData_d);
 		mean_accX += *accX;
 		mean_accY += *accY;
 		mean_accZ += *accZ;
@@ -734,7 +737,7 @@ int main(void) {
             //								Sensors update
             //============================================================================
             stan_d.new_data = false;	//DRY flag clear
-            SensorUpdate();
+            SensorUpdate(&allData_d);
 			SensorDataFusion(&allData_d);
             StateUpdate();
             //----------------Prepare frame---------

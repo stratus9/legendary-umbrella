@@ -91,5 +91,6 @@ void UpdateFW(void);
 void TempUpdate(DS18B20_t *, frame_t *);
 void SensorCal(void);
 void BT_Start(frame_t *);
+void SensorUpdate(allData_t *);
 void FLASHerase(void);
 #endif /* CANSAT_H_ */
