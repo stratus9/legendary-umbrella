@@ -741,7 +741,7 @@ int main(void) {
 			SensorDataFusion(&allData_d);
             StateUpdate();
             //----------------Prepare frame---------
-            prepareFrame(&frame_b, &stan_d, &GPS_d);
+            prepareFrame(&allData_d);
             if(stan_d.flash_trigger) SPI_WriteFrame(&SPIaddress, 400, &frame_b);
             if(!(frame_d.mutex)) frame_d = frame_b;							//jeœli frame_d nie zablokowane -> przepisz z bufora
             LED_PORT.OUTTGL = LED1;

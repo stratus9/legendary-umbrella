@@ -14,7 +14,7 @@ void float2char(float number,char * tablica);
 bool purgeBuffer(ringBuffer_t * bufor);
 bool ringBuffer_addString(ringBuffer_t * bufor, char * text, uint16_t text_length);
 bool ringBuffer_addChar(ringBuffer_t * bufor, char value);
-void prepareFrame(frame_t *  frame, stan_t *  stan, GPS_t * gps);
+void prepareFrame(allData_t *);
 bool GPSdecode(ringBuffer_t * bufor, GPS_t * gps);
 int NMEAchecksum(char *s);
 char ringBuffer_read(ringBuffer_t * bufor);

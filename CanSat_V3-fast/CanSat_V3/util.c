@@ -31,530 +31,530 @@ void float2char(float number,char * tablica){
 	*(tablica+6) = ((tmp%10)) + 48;
 }
 
-void prepareFrame(frame_t *  frame, stan_t *  stan, GPS_t * gps){
+void prepareFrame(allData_t * allData){
 	volatile int16_t i,tmp,tmpf;
 	volatile uint32_t tmp_long;
 	i=0;
 	//-----------------header----------------------------
-	frame->frameASCII[i++] = '3';
-	frame->frameASCII[i++] = '2';
-	frame->frameASCII[i++] = '9';
-	frame->frameASCII[i++] = '6';
-	frame->frameASCII[i++] = ',';
+	allData->frame_b->frameASCII[i++] = '3';
+	allData->frame_b->frameASCII[i++] = '2';
+	allData->frame_b->frameASCII[i++] = '9';
+	allData->frame_b->frameASCII[i++] = '6';
+	allData->frame_b->frameASCII[i++] = ',';
 	//----------------packet count-----------------------
-	tmp = frame->r_count;
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	tmp = allData->frame_b->r_count;
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	//-------------Bat voltage----------------------
-	tmp = (int16_t)(frame->r_voltage*1000);
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	tmp = (int16_t)(allData->frame_b->r_voltage*1000);
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	//------------Flight state------------------------
-	tmp = frame->r_FSWstate;
-	frame->frameASCII[i++] =  tmp+ 48;
-	frame->frameASCII[i++] =  ',';
+	tmp = allData->frame_b->r_FSWstate;
+	allData->frame_b->frameASCII[i++] =  tmp+ 48;
+	allData->frame_b->frameASCII[i++] =  ',';
 	//------------FSW state-------------------------
-	frame->frameASCII[i++] = 'S';
-	frame->frameASCII[i++] = stan->armed_trigger+48;
-	frame->frameASCII[i++] = stan->telemetry_trigger+48;
-	frame->frameASCII[i++] = stan->flash_trigger+48;
-	frame->frameASCII[i++] = stan->callibration+48;
-	frame->frameASCII[i++] = ',';
+	allData->frame_b->frameASCII[i++] = 'S';
+	allData->frame_b->frameASCII[i++] = allData->stan->armed_trigger+48;
+	allData->frame_b->frameASCII[i++] = allData->stan->telemetry_trigger+48;
+	allData->frame_b->frameASCII[i++] = allData->stan->flash_trigger+48;
+	allData->frame_b->frameASCII[i++] = allData->stan->callibration+48;
+	allData->frame_b->frameASCII[i++] = ',';
 	
 	//===============Pressure & altitude===================
 	//--------------LPS25H Altitude----------------------------
-	tmp = frame->LPS25H_altitude;
-	tmpf = (frame->LPS25H_altitude - truncf(frame->LPS25H_altitude))*100;
+	tmp = allData->SensorsData->altitude;
+	tmpf = (allData->SensorsData->altitude - truncf(allData->SensorsData->altitude))*100;
 	if((tmp < 0) || (tmpf <0)){
 		tmp = -tmp;
 		tmpf = -tmpf;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmpf/10)%10 + 48;
-	frame->frameASCII[i++] = (tmpf/1)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmpf/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmpf/1)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	
-//------------------LPS25H Velocity------------------------------
-	tmp = frame->LPS25H_velocity*10;	
+//------------------Ascent Velocity------------------------------
+	tmp = allData->SensorsData->ascentVelo*10;	
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	
 	//===============Accel=========================
-	//--------------MPU9150 Accel x----------------------
-	tmp = frame->MPU9150_accel_x*1000;
+	//-------------- Accel x----------------------
+	tmp = allData->SensorsData->accel_x*1000;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	
 	//===============Gyro==========================
 	
-	//--------------MPU9150 Gyro y---------------------
-	tmp = frame->MPU9150_gyro_y*10;
+	//--------------Gyro x---------------------
+	tmp = allData->SensorsData->gyro_x*10;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 
 	//==============GPS============================
 	//--------------GPS lat------------------------------
-	frame->frameASCII[i++] = gps->latitude[0];
-	frame->frameASCII[i++] = gps->latitude[1];
-	frame->frameASCII[i++] = gps->latitude[2];
-	frame->frameASCII[i++] = gps->latitude[3];
-	frame->frameASCII[i++] = gps->latitude[4];
-	frame->frameASCII[i++] = gps->latitude[5];
-	frame->frameASCII[i++] = gps->latitude[6];
-	frame->frameASCII[i++] = gps->latitude[7];
-	frame->frameASCII[i++] = gps->latitude[8];
-	frame->frameASCII[i++] = gps->latitude[9];
-	frame->frameASCII[i++] = gps->latitude[10];
-	frame->frameASCII[i++] = ',';
+	allData->frame_b->frameASCII[i++] = allData->GPS->latitude[0];
+	allData->frame_b->frameASCII[i++] = allData->GPS->latitude[1];
+	allData->frame_b->frameASCII[i++] = allData->GPS->latitude[2];
+	allData->frame_b->frameASCII[i++] = allData->GPS->latitude[3];
+	allData->frame_b->frameASCII[i++] = allData->GPS->latitude[4];
+	allData->frame_b->frameASCII[i++] = allData->GPS->latitude[5];
+	allData->frame_b->frameASCII[i++] = allData->GPS->latitude[6];
+	allData->frame_b->frameASCII[i++] = allData->GPS->latitude[7];
+	allData->frame_b->frameASCII[i++] = allData->GPS->latitude[8];
+	allData->frame_b->frameASCII[i++] = allData->GPS->latitude[9];
+	allData->frame_b->frameASCII[i++] = allData->GPS->latitude[10];
+	allData->frame_b->frameASCII[i++] = ',';
 	//--------------GPS long------------------------------
-	frame->frameASCII[i++] = gps->longitude[0];
-	frame->frameASCII[i++] = gps->longitude[1];
-	frame->frameASCII[i++] = gps->longitude[2];
-	frame->frameASCII[i++] = gps->longitude[3];
-	frame->frameASCII[i++] = gps->longitude[4];
-	frame->frameASCII[i++] = gps->longitude[5];
-	frame->frameASCII[i++] = gps->longitude[6];
-	frame->frameASCII[i++] = gps->longitude[7];
-	frame->frameASCII[i++] = gps->longitude[8];
-	frame->frameASCII[i++] = gps->longitude[9];
-	frame->frameASCII[i++] = gps->longitude[10];
-	frame->frameASCII[i++] = ',';
+	allData->frame_b->frameASCII[i++] = allData->GPS->longitude[0];
+	allData->frame_b->frameASCII[i++] = allData->GPS->longitude[1];
+	allData->frame_b->frameASCII[i++] = allData->GPS->longitude[2];
+	allData->frame_b->frameASCII[i++] = allData->GPS->longitude[3];
+	allData->frame_b->frameASCII[i++] = allData->GPS->longitude[4];
+	allData->frame_b->frameASCII[i++] = allData->GPS->longitude[5];
+	allData->frame_b->frameASCII[i++] = allData->GPS->longitude[6];
+	allData->frame_b->frameASCII[i++] = allData->GPS->longitude[7];
+	allData->frame_b->frameASCII[i++] = allData->GPS->longitude[8];
+	allData->frame_b->frameASCII[i++] = allData->GPS->longitude[9];
+	allData->frame_b->frameASCII[i++] = allData->GPS->longitude[10];
+	allData->frame_b->frameASCII[i++] = ',';
 	//--------------GPS altitude------------------------------
-	frame->frameASCII[i++] = gps->altitude[0];
-	frame->frameASCII[i++] = gps->altitude[1];
-	frame->frameASCII[i++] = gps->altitude[2];
-	frame->frameASCII[i++] = gps->altitude[3];
-	frame->frameASCII[i++] = gps->altitude[4];
-	frame->frameASCII[i++] = gps->altitude[5];
-	frame->frameASCII[i++] = gps->altitude[6];
-	frame->frameASCII[i++] = gps->altitude[7];
-	frame->frameASCII[i++] = gps->altitude[8];
-	frame->frameASCII[i++] = ',';
+	allData->frame_b->frameASCII[i++] = allData->GPS->altitude[0];
+	allData->frame_b->frameASCII[i++] = allData->GPS->altitude[1];
+	allData->frame_b->frameASCII[i++] = allData->GPS->altitude[2];
+	allData->frame_b->frameASCII[i++] = allData->GPS->altitude[3];
+	allData->frame_b->frameASCII[i++] = allData->GPS->altitude[4];
+	allData->frame_b->frameASCII[i++] = allData->GPS->altitude[5];
+	allData->frame_b->frameASCII[i++] = allData->GPS->altitude[6];
+	allData->frame_b->frameASCII[i++] = allData->GPS->altitude[7];
+	allData->frame_b->frameASCII[i++] = allData->GPS->altitude[8];
+	allData->frame_b->frameASCII[i++] = ',';
 	//--------------GPS fix------------------------------
-	//frame->frameASCII[i++] = 'F';
-	frame->frameASCII[i++] = gps->fix+48;
-	frame->frameASCII[i++] = ',';
+	//allData->frame_b->frameASCII[i++] = 'F';
+	allData->frame_b->frameASCII[i++] = allData->GPS->fix+48;
+	allData->frame_b->frameASCII[i++] = ',';
 	
 	//--------------Checksum----------------------------
-	frame->frameASCII[i++] = '1';
-	frame->frameASCII[i++] = '3';
+	allData->frame_b->frameASCII[i++] = '1';
+	allData->frame_b->frameASCII[i++] = '3';
 	
 	//--------------Remote end------------------------------
-	frame->frameASCII[i++] = ',';
-	frame->frameASCII[i++] = '%';
-	frame->frameASCII[i++] = '#';
-	frame->frameASCII[i++] = ',';
+	allData->frame_b->frameASCII[i++] = ',';
+	allData->frame_b->frameASCII[i++] = '%';
+	allData->frame_b->frameASCII[i++] = '#';
+	allData->frame_b->frameASCII[i++] = ',';
 	
 	//Local start
 	//---------------Time [s]----------------------------
-	tmp_long = frame->sec;
-	frame->frameASCII[i++] = (tmp_long/1000000)%10 + 48;
-	frame->frameASCII[i++] = (tmp_long/100000)%10 + 48;
-	frame->frameASCII[i++] = (tmp_long/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp_long/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp_long/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp_long/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp_long)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	tmp_long = allData->frame_b->sec;
+	allData->frame_b->frameASCII[i++] = (tmp_long/1000000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp_long/100000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp_long/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp_long/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp_long/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp_long/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp_long)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	//-------------Bat voltage----------------------
-	tmp = (int16_t)(frame->r_voltage*1000);
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	tmp = (int16_t)(allData->frame_b->r_voltage*1000);
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	//-------------VCC voltage----------------------
-	tmp = (int16_t)(frame->vcc*1000);
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	tmp = (int16_t)(allData->frame_b->vcc*1000);
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	
 	//===============Temperature=====================
 	//--------------MPU9150 temp-----------------------
-	tmp = frame->MPU9150_temp*100;
+	tmp = allData->frame_b->MPU9150_temp*100;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = tmp%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = tmp%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	
 	//--------------LSM9DS0 temp----------------------- //93
 	/*
-	tmp = frame->LSM9DS0_temp*100;
+	tmp = allData->frame_b->LSM9DS0_temp*100;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = tmp%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = tmp%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	
 	//================Analog================================
 	//--------------Analog 1------------------------------
 	/*
-	tmp = frame->light1;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = '%';
-	frame->frameASCII[i++] = ',';
+	tmp = allData->frame_b->light1;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '%';
+	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	//--------------Analog 2------------------------------
 	/*
-	tmp = frame->light2;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = '%';
-	frame->frameASCII[i++] = ',';
+	tmp = allData->frame_b->light2;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '%';
+	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	//--------------Analog 3------------------------------
 	/*
-	tmp = frame->light3;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = '%';
-	frame->frameASCII[i++] = ',';
+	tmp = allData->frame_b->light3;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '%';
+	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	
 	//--------------LPS25H pressure----------------------
-	tmp = frame->LPS25H_pressure;
-	tmpf = ((frame->LPS25H_pressure - truncf(frame->LPS25H_pressure))*1000);
+	tmp = allData->frame_b->LPS25H_pressure;
+	tmpf = ((allData->frame_b->LPS25H_pressure - truncf(allData->frame_b->LPS25H_pressure))*1000);
 	if(tmp < 0){
 		tmp = -tmp;
 		tmpf = -tmpf;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmpf/100)%10 + 48;
-	frame->frameASCII[i++] = (tmpf/10)%10 + 48;
-	frame->frameASCII[i++] = (tmpf/1)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmpf/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmpf/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmpf/1)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	
 	//===============Acceleration=========================
 	//--------------MPU9150 Accel y------------------------
 	/*
-	tmp = frame->MPU9150_accel_y*1000;
+	tmp = allData->frame_b->MPU9150_accel_y*1000;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	//--------------MPU9150 Accel z-------------------------
 	/*
-	tmp = frame->MPU9150_accel_z*1000;
+	tmp = allData->frame_b->MPU9150_accel_z*1000;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	//--------------LIS331HH Accel x----------------------
 	/*
-	tmp = frame->LIS331HH_accel_x*1000;
+	tmp = allData->frame_b->LIS331HH_accel_x*1000;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	//--------------LIS331HH Accel y------------------------
-	tmp = -frame->LIS331HH_accel_y*1000;
+	tmp = -allData->frame_b->LIS331HH_accel_y*1000;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	
 	//--------------LIS331HH Accel z-------------------------
 	/*
-	tmp = frame->LIS331HH_accel_z*1000;
+	tmp = allData->frame_b->LIS331HH_accel_z*1000;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	//--------------LSM9DS0 Accel x----------------------//124
 	/*
-	tmp = frame->LSM9DS0_accel_x*1000;
+	tmp = allData->frame_b->LSM9DS0_accel_x*1000;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	//--------------LS9DS0 Accel y------------------------
-	tmp = frame->LSM9DS0_accel_y*1000;
+	tmp = allData->frame_b->LSM9DS0_accel_y*1000;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 
 	//--------------LSM9DS0 Accel z-------------------------
 	/*
-	tmp = frame->LSM9DS0_accel_z*1000;
+	tmp = allData->frame_b->LSM9DS0_accel_z*1000;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	
 	//==========================Gyro======================
 	//--------------MPU9150 Gyro x---------------------//156
 	
-	tmp = frame->MPU9150_gyro_x*10;
+	tmp = allData->frame_b->MPU9150_gyro_x*10;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	
 	//--------------MPU9150 Gyro z----------------------
 	
-	tmp = frame->MPU9150_gyro_z*10;
+	tmp = allData->frame_b->MPU9150_gyro_z*10;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	
 	//--------------LSM9DS0 Gyro x---------------------
 	/*
-	tmp = frame->LSM9DS0_gyro_x*10;
+	tmp = allData->frame_b->LSM9DS0_gyro_x*10;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	//--------------LSM9DS0 Gyro y---------------------
-	tmp = frame->LSM9DS0_gyro_y*10;
+	tmp = allData->frame_b->LSM9DS0_gyro_y*10;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	//--------------LSM9DS0 Gyro z----------------------//188
 	/*
-	tmp = frame->LSM9DS0_gyro_z*10;
+	tmp = allData->frame_b->LSM9DS0_gyro_z*10;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	//===============Mag===========================	
 	/*
 	//--------------LSM9DS0 mag x-----------------------//220
-	tmp = -frame->LSM9DS0_mag_x*100;
+	tmp = -allData->frame_b->LSM9DS0_mag_x*100;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	//--------------LSM9DS0 mag y-----------------------
 	/*
-	tmp = frame->LSM9DS0_mag_y*100;
+	tmp = allData->frame_b->LSM9DS0_mag_y*100;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	//--------------LSM9DS0 mag z-----------------------
 	/*
-	tmp = frame->LSM9DS0_mag_z*100;
+	tmp = allData->frame_b->LSM9DS0_mag_z*100;
 	if(tmp < 0){
 		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
+		allData->frame_b->frameASCII[i++] = '-';
 	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+	else allData->frame_b->frameASCII[i++] = '+';
+	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = '.';
+	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	
-	frame->frameASCII[i++] = '\r';
-	frame->frameASCII[i++] = '\n';		//248 bajtów
-	frame->frameASCII[i++] = 0;
-	frame->frameASCII[i++] = 'X';
+	allData->frame_b->frameASCII[i++] = '\r';
+	allData->frame_b->frameASCII[i++] = '\n';		//248 bajtów
+	allData->frame_b->frameASCII[i++] = 0;
+	allData->frame_b->frameASCII[i++] = 'X';
 }
 
 char ringBuffer_read(ringBuffer_t * bufor){
