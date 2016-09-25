@@ -44,7 +44,7 @@ void ADC_Read(Analog_t * dane){
 	ADCA.CH0.CTRL |= ADC_CH_START_bm;				//rozpocznij pomiar CH0
 	while(!(ADCA.INTFLAGS & ADC_CH0IF_bm));
 	ADCA.CH0.INTFLAGS = ADC_CH0IF_bm;
-	dane->Vsense = (ADCA.CH0RES/4096.0-0.05)*10.3;
+	dane->Vbat = (ADCA.CH0RES/4096.0-0.05)*10.3;
 	
 	//Vex
 	//ADCA_CH0_CTRL = ADC_CH_INPUTMODE_DIFFWGAIN_gc | ADC_CH_GAIN_1X_gc;

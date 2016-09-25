@@ -159,7 +159,8 @@ typedef struct stan_s{
 	bool telemetry_trigger;
 	bool flash_trigger;
 	bool armed_trigger;
-	uint8_t LIS_comm;
+	uint8_t flightState;
+	uint8_t softwareState;
 } stan_t;
 
 //-------------------------------struktura obs³ugi interfejsu USART----------------
@@ -184,7 +185,7 @@ typedef struct USART_s{
 typedef struct ADC_s{
 	uint16_t ADC16u;
 	int16_t ADC16s;
-	float Vsense;
+	float Vbat;
 	float Vsense2;
 	float Vusb;
 	float LS1;
@@ -221,9 +222,7 @@ typedef struct SensorsData_s{
 	char longitude[13];
 	char fix;
 	char satNo[3];
-	float thrust;	
-	uint8_t flightState;
-	uint8_t softwareState;	
+	float thrust;		
 } SensorsData_t;
 
 //------------------------FRAME--------------------------------------------------

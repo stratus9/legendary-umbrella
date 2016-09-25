@@ -50,7 +50,7 @@ void prepareFrame(allData_t * allData){
 	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
 	allData->frame_b->frameASCII[i++] = ',';
 	//-------------Bat voltage----------------------
-	tmp = (int16_t)(allData->frame_b->r_voltage*1000);
+	tmp = (int16_t)(allData->Analog->Vbat*1000);
 	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
 	allData->frame_b->frameASCII[i++] = '.';
 	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
@@ -58,7 +58,7 @@ void prepareFrame(allData_t * allData){
 	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
 	allData->frame_b->frameASCII[i++] = ',';
 	//------------Flight state------------------------
-	tmp = allData->frame_b->r_FSWstate;
+	tmp = allData->stan->flightState;
 	allData->frame_b->frameASCII[i++] =  tmp+ 48;
 	allData->frame_b->frameASCII[i++] =  ',';
 	//------------FSW state-------------------------
@@ -230,7 +230,7 @@ void prepareFrame(allData_t * allData){
 	
 	//===============Temperature=====================
 	//--------------MPU9150 temp-----------------------
-	tmp = allData->frame_b->MPU9150_temp*100;
+	tmp = allData->MPU9150->temp*100;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -245,7 +245,7 @@ void prepareFrame(allData_t * allData){
 	
 	//--------------LSM9DS0 temp----------------------- //93
 	/*
-	tmp = allData->frame_b->LSM9DS0_temp*100;
+	tmp = allData->LSM9DS0->temp*100;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -262,7 +262,7 @@ void prepareFrame(allData_t * allData){
 	//================Analog================================
 	//--------------Analog 1------------------------------
 	/*
-	tmp = allData->frame_b->light1;
+	tmp = allData->Analog->LS1;
 	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
 	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
 	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
@@ -271,7 +271,7 @@ void prepareFrame(allData_t * allData){
 	*/
 	//--------------Analog 2------------------------------
 	/*
-	tmp = allData->frame_b->light2;
+	tmp = allData->Analog->LS2;
 	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
 	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
 	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
@@ -280,7 +280,7 @@ void prepareFrame(allData_t * allData){
 	*/
 	//--------------Analog 3------------------------------
 	/*
-	tmp = allData->frame_b->light3;
+	tmp = allData->Analog->LS3;
 	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
 	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
 	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
@@ -289,8 +289,8 @@ void prepareFrame(allData_t * allData){
 	*/
 	
 	//--------------LPS25H pressure----------------------
-	tmp = allData->frame_b->LPS25H_pressure;
-	tmpf = ((allData->frame_b->LPS25H_pressure - truncf(allData->frame_b->LPS25H_pressure))*1000);
+	tmp = allData->LPS25H->pressure;
+	tmpf = ((allData->LPS25H->pressure - truncf(allData->LPS25H->pressure))*1000);
 	if(tmp < 0){
 		tmp = -tmp;
 		tmpf = -tmpf;
@@ -310,7 +310,7 @@ void prepareFrame(allData_t * allData){
 	//===============Acceleration=========================
 	//--------------MPU9150 Accel y------------------------
 	/*
-	tmp = allData->frame_b->MPU9150_accel_y*1000;
+	tmp = allData->MPU9150->accel_y*1000;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -326,7 +326,7 @@ void prepareFrame(allData_t * allData){
 	*/
 	//--------------MPU9150 Accel z-------------------------
 	/*
-	tmp = allData->frame_b->MPU9150_accel_z*1000;
+	tmp = allData->MPU9150->accel_z*1000;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -342,7 +342,7 @@ void prepareFrame(allData_t * allData){
 	*/
 	//--------------LIS331HH Accel x----------------------
 	/*
-	tmp = allData->frame_b->LIS331HH_accel_x*1000;
+	tmp = allData->LIS331HH->accel_x*1000;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -357,7 +357,7 @@ void prepareFrame(allData_t * allData){
 	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	//--------------LIS331HH Accel y------------------------
-	tmp = -allData->frame_b->LIS331HH_accel_y*1000;
+	tmp = allData->LIS331HH->accel_y*1000;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -373,7 +373,7 @@ void prepareFrame(allData_t * allData){
 	
 	//--------------LIS331HH Accel z-------------------------
 	/*
-	tmp = allData->frame_b->LIS331HH_accel_z*1000;
+	tmp = allData->LIS331HH->accel_z*1000;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -389,7 +389,7 @@ void prepareFrame(allData_t * allData){
 	*/
 	//--------------LSM9DS0 Accel x----------------------//124
 	/*
-	tmp = allData->frame_b->LSM9DS0_accel_x*1000;
+	tmp = allData->LSM9DS0->accel_x*1000;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -404,7 +404,7 @@ void prepareFrame(allData_t * allData){
 	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	//--------------LS9DS0 Accel y------------------------
-	tmp = allData->frame_b->LSM9DS0_accel_y*1000;
+	tmp = allData->LSM9DS0->accel_y*1000;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -420,7 +420,7 @@ void prepareFrame(allData_t * allData){
 
 	//--------------LSM9DS0 Accel z-------------------------
 	/*
-	tmp = allData->frame_b->LSM9DS0_accel_z*1000;
+	tmp = allData->LSM9DS0->accel_z*1000;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -438,7 +438,7 @@ void prepareFrame(allData_t * allData){
 	//==========================Gyro======================
 	//--------------MPU9150 Gyro x---------------------//156
 	
-	tmp = allData->frame_b->MPU9150_gyro_x*10;
+	tmp = allData->MPU9150->gyro_x*10;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -454,7 +454,7 @@ void prepareFrame(allData_t * allData){
 	
 	//--------------MPU9150 Gyro z----------------------
 	
-	tmp = allData->frame_b->MPU9150_gyro_z*10;
+	tmp = allData->MPU9150->gyro_z*10;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -470,7 +470,7 @@ void prepareFrame(allData_t * allData){
 	
 	//--------------LSM9DS0 Gyro x---------------------
 	/*
-	tmp = allData->frame_b->LSM9DS0_gyro_x*10;
+	tmp = allData->LSM9DS0->gyro_x*10;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -485,7 +485,7 @@ void prepareFrame(allData_t * allData){
 	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	//--------------LSM9DS0 Gyro y---------------------
-	tmp = allData->frame_b->LSM9DS0_gyro_y*10;
+	tmp = allData->LSM9DS0->gyro_y*10;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -500,7 +500,7 @@ void prepareFrame(allData_t * allData){
 	allData->frame_b->frameASCII[i++] = ',';
 	//--------------LSM9DS0 Gyro z----------------------//188
 	/*
-	tmp = allData->frame_b->LSM9DS0_gyro_z*10;
+	tmp = allData->LSM9DS0->gyro_z*10;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -515,9 +515,9 @@ void prepareFrame(allData_t * allData){
 	allData->frame_b->frameASCII[i++] = ',';
 	*/
 	//===============Mag===========================	
-	/*
 	//--------------LSM9DS0 mag x-----------------------//220
-	tmp = -allData->frame_b->LSM9DS0_mag_x*100;
+	/*
+	tmp = allData->LSM9DS0->mag_x*100;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -532,7 +532,7 @@ void prepareFrame(allData_t * allData){
 	*/
 	//--------------LSM9DS0 mag y-----------------------
 	/*
-	tmp = allData->frame_b->LSM9DS0_mag_y*100;
+	tmp = allData->LSM9DS0->mag_y*100;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';
@@ -547,7 +547,7 @@ void prepareFrame(allData_t * allData){
 	*/
 	//--------------LSM9DS0 mag z-----------------------
 	/*
-	tmp = allData->frame_b->LSM9DS0_mag_z*100;
+	tmp = allData->LSM9DS0->mag_z*100;
 	if(tmp < 0){
 		tmp = -tmp;
 		allData->frame_b->frameASCII[i++] = '-';

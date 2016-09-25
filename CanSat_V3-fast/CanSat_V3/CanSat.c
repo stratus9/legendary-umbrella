@@ -376,7 +376,7 @@ void SensorUpdate(allData_t * allData) {
 	
 	
 	//do router i wywaliæ jak najwiêcej!
-    frame_b.r_voltage = frame_b.r_voltage*(1.0-BAT_voltage_alpha) + ADC_d.Vsense*BAT_voltage_alpha;
+    frame_b.r_voltage = frame_b.r_voltage*(1.0-BAT_voltage_alpha) + ADC_d.Vbat*BAT_voltage_alpha;
 	frame_b.vcc = frame_b.vcc*(1.0-BAT_voltage_alpha) + ADC_d.VCC*BAT_voltage_alpha;
     //-----------------Additional-----------
     if(frame_b.LPS25H_altitude > frame_b.max_altitude) frame_b.max_altitude = frame_b.LPS25H_altitude;
