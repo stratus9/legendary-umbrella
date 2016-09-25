@@ -19,6 +19,6 @@ void MPU9150_MagUpdate(MPU9150_t * data);
 void MPU9150_MagCalc(MPU9150_t * data);
 void MPU9150_MagCal(MPU9150_t * data);
 uint8_t MPU9150_WhoAmI(void);
-void MPU9150_Conv(MPU9150_t * MPU9150,frame_t * frame);
+void MPU9150_Conv(allData_t *);
 void MPU9150_MagStartConv(void);
 #endif /* MPU9150_H_ */

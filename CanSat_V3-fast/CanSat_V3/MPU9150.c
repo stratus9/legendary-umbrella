@@ -124,30 +124,19 @@ void MPU9150_MagCal(MPU9150_t * data){
 	(*data).sens_mag_z = z;
 }
 
-void MPU9150_Conv(MPU9150_t * MPU9150,frame_t * frame){
-	(*MPU9150).mag_x = ((*MPU9150).raw_mag_x + (((*MPU9150).raw_mag_x * (*MPU9150).sens_mag_x) >> 8)) * 0.3;
-	(*MPU9150).mag_y = ((*MPU9150).raw_mag_y + (((*MPU9150).raw_mag_y * (*MPU9150).sens_mag_y) >> 8)) * 0.3;
-	(*MPU9150).mag_z = ((*MPU9150).raw_mag_z + (((*MPU9150).raw_mag_z * (*MPU9150).sens_mag_z) >> 8)) * 0.3;
+void MPU9150_Conv(allData_t * allData){
+	MPU9150_t * MPU9150 = allData->MPU9150;
+	MPU9150->mag_x = (MPU9150->raw_mag_x + ((MPU9150->raw_mag_x * MPU9150->sens_mag_x) >> 8)) * 0.3;
+	MPU9150->mag_y = (MPU9150->raw_mag_y + ((MPU9150->raw_mag_y * MPU9150->sens_mag_y) >> 8)) * 0.3;
+	MPU9150->mag_z = (MPU9150->raw_mag_z + ((MPU9150->raw_mag_z * MPU9150->sens_mag_z) >> 8)) * 0.3;
 	
-	(*MPU9150).accel_x = ((*MPU9150).raw_accel_x - (*MPU9150).offset_accel_x) / 2048.0;	//16384.0; -2g
-	(*MPU9150).accel_y = ((*MPU9150).raw_accel_y - (*MPU9150).offset_accel_y) / 2048.0; //16384.0;
-	(*MPU9150).accel_z = ((*MPU9150).raw_accel_z - (*MPU9150).offset_accel_z) / 2048.0; //16384.0;
+	MPU9150->accel_x = (MPU9150->raw_accel_x - MPU9150->offset_accel_x) / 2048.0;	//16384.0; -2g
+	MPU9150->accel_y = (MPU9150->raw_accel_y - MPU9150->offset_accel_y) / 2048.0; //16384.0;
+	MPU9150->accel_z = (MPU9150->raw_accel_z - MPU9150->offset_accel_z) / 2048.0; //16384.0;
 	
-	(*MPU9150).gyro_x = ((*MPU9150).raw_gyro_x - (*MPU9150).offset_gyro_x) / 16.4;	//131 - 250deg/s, 62.5 - 500deg/s,32.8 - 1000deg/s,16.4 - 2000deg/s
-	(*MPU9150).gyro_y = ((*MPU9150).raw_gyro_y - (*MPU9150).offset_gyro_y) / 16.4;
-	(*MPU9150).gyro_z = ((*MPU9150).raw_gyro_z - (*MPU9150).offset_gyro_z) / 16.4;
+	MPU9150->gyro_x = (MPU9150->raw_gyro_x - MPU9150->offset_gyro_x) / 16.4;	//131 - 250deg/s, 62.5 - 500deg/s,32.8 - 1000deg/s,16.4 - 2000deg/s
+	MPU9150->gyro_y = (MPU9150->raw_gyro_y - MPU9150->offset_gyro_y) / 16.4;
+	MPU9150->gyro_z = (MPU9150->raw_gyro_z - MPU9150->offset_gyro_z) / 16.4;
 	
-	(*MPU9150).temp  = ((*MPU9150).raw_temp + 11900.0) / 34.0;	//chyba *10
-	
-	//------------store to frame struct-------------
-	frame->MPU9150_temp = (MPU9150->temp)/10.0;
-	frame->MPU9150_gyro_x = MPU9150->gyro_x;
-	frame->MPU9150_gyro_y = MPU9150->gyro_y;
-	frame->MPU9150_gyro_z = MPU9150->gyro_z;
-	frame->MPU9150_accel_x = MPU9150->accel_x;
-	frame->MPU9150_accel_y = MPU9150->accel_y;
-	frame->MPU9150_accel_z = MPU9150->accel_z;
-	frame->MPU9150_mag_x = MPU9150->mag_x;
-	frame->MPU9150_mag_y = MPU9150->mag_y;
-	frame->MPU9150_mag_z = MPU9150->mag_z;	
+	MPU9150->temp  = (MPU9150->raw_temp + 11900.0) / 34.0;	//chyba *10
 }

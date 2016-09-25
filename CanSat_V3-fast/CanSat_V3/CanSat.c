@@ -212,8 +212,8 @@ ISR(USARTD0_RXC_vect) {
 
 //----------------------Sensors update-------------------------------
 ISR(TCC0_OVF_vect) {
-    stan_d.new_data = true;
-    frame_b.sec++;
+    allData_d.stan->new_data = true;
+    allData_d.RTC->time++;
 }
 
 //----------------------Buzzer---------------------------------------
@@ -259,7 +259,6 @@ ISR(TCE0_OVF_vect) {
 ISR(TCF0_OVF_vect) {
     LED_PORT.OUTTGL = LED4;
     frame_d.terminate = false;
-    mission_time = frame_b.sec;
     if(stan_d.telemetry_trigger) {
         if(RTC_d.frameTeleCount< 99999) RTC_d.frameTeleCount++;
         else RTC_d.frameTeleCount = 0;
@@ -324,7 +323,6 @@ void SensorCal(void) {
 
 void structInit(void) {
     frame_d.iUART = 0;
-    frame_d.r_count = 0;
     stan_d.new_data = false;
     stan_d.new_frame = false;
 	
@@ -361,10 +359,10 @@ void BT_Start(frame_t * frame) {
 void SensorUpdate(allData_t * allData) {
     //-----------------MPU9150--------------
     MPU9150_RawUpdate(allData->MPU9150);
-    MPU9150_Conv(allData->MPU9150, &frame_b);
+    MPU9150_Conv(allData);
     //-----------------LIS331HH-------------
     LIS331HH_Update(allData->LIS331HH);
-    LIS331HH_Calc(allData->LIS331HH, &frame_b);
+    LIS331HH_Calc(allData);
     //-----------------LPS25H---------------
     LPS25H_update(allData->LPS25H);
     LPS25H_calc(allData->LPS25H);
@@ -375,75 +373,66 @@ void SensorUpdate(allData_t * allData) {
     ADC_Read(allData->Analog);
 	
 	
-	//do router i wywaliæ jak najwiêcej!
-    frame_b.r_voltage = frame_b.r_voltage*(1.0-BAT_voltage_alpha) + ADC_d.Vbat*BAT_voltage_alpha;
-	frame_b.vcc = frame_b.vcc*(1.0-BAT_voltage_alpha) + ADC_d.VCC*BAT_voltage_alpha;
+	//do router lub funkcji i wywaliæ jak najwiêcej!
+    //frame_b.r_voltage = frame_b.r_voltage*(1.0-BAT_voltage_alpha) + ADC_d.Vbat*BAT_voltage_alpha;
+	//frame_b.vcc = frame_b.vcc*(1.0-BAT_voltage_alpha) + ADC_d.VCC*BAT_voltage_alpha;
     //-----------------Additional-----------
-    if(frame_b.LPS25H_altitude > frame_b.max_altitude) frame_b.max_altitude = frame_b.LPS25H_altitude;
-    frame_b.LSM9DS0_accel_x = LSM9DS0_d.accel_x;
-    frame_b.LSM9DS0_accel_y = LSM9DS0_d.accel_y;
-    frame_b.LSM9DS0_accel_z = LSM9DS0_d.accel_z;
-    frame_b.LSM9DS0_gyro_x = LSM9DS0_d.gyro_x;
-    frame_b.LSM9DS0_gyro_y = LSM9DS0_d.gyro_y;
-    frame_b.LSM9DS0_gyro_z = LSM9DS0_d.gyro_z;
-    frame_b.LSM9DS0_mag_x = LSM9DS0_d.mag_x;
-    frame_b.LSM9DS0_mag_y = LSM9DS0_d.mag_y;
-    frame_b.LSM9DS0_mag_z = LSM9DS0_d.mag_z;
-    frame_b.LSM9DS0_temp = LSM9DS0_d.temp;
-    frame_b.light1 = ((ADC_d.LS1 * 100) / 255);
-    frame_b.light2 = ((ADC_d.LS2 * 100) / 255);
-    frame_b.light3 = ((ADC_d.LS3 * 100) / 255);
-	maxAcc(&frame_b);
+    if(LPS25H_d.altitude > LPS25H_d.max_altitude) LPS25H_d.max_altitude = LPS25H_d.altitude;
+    
+    //frame_b.light1 = ((ADC_d.LS1 * 100) / 255);
+    //frame_b.light2 = ((ADC_d.LS2 * 100) / 255);
+    //frame_b.light3 = ((ADC_d.LS3 * 100) / 255);
+	
 }
 
 void StateUpdate(void) {
     if(!(stan_d.armed_trigger)) {
-        frame_b.r_FSWstate = 0;
+        stan_d.flightState = 0;
         buzzer_d.mode = 0;
 		//stan_d.flash_trigger = false;
         PORTD_OUTCLR = PIN1_bm;
     } else {
-        switch(frame_b.r_FSWstate) {
+        switch(stan_d.flightState) {
         //--------case 0 preflight-----------------
         case 0:
-            if((frame_b.max_acc > 3) || (frame_b.LPS25H_velocity > 10)) frame_b.r_FSWstate = 1;	//wykrycie startu
+            if((SensorData_d.accel_x > 3) || (LPS25H_d.velocity > 10)) stan_d.flightState = 1;	//wykrycie startu
             buzzer_d.mode = 0;
-			frame_b.max_altitude = frame_b.LPS25H_altitude;
+			LPS25H_d.max_altitude = LPS25H_d.altitude;
             break;
         //--------case 1 flight wait for apogee----
         case 1:
 			stan_d.flash_trigger = true;
-            if((frame_b.max_altitude - frame_b.LPS25H_altitude) > 10.0) frame_b.r_FSWstate = 2;	//wykrycie pu³apu
+            if((LPS25H_d.max_altitude - LPS25H_d.altitude) > 10.0) stan_d.flightState = 2;	//wykrycie pu³apu
             break;
         //-------case 2 delay + sound signal + deployment------------------
         case 2:
             buzzer_d.mode = 1;																//3 sygna³y ci¹g³e
             buzzer_d.trigger = true;														//odblokowanie buzzera
-            timer_buffer = frame_b.sec;														//buforowanie czasu
-            frame_b.r_FSWstate = 3;
+            timer_buffer = RTC_d.time;														//buforowanie czasu
+            stan_d.flightState = 3;
             break;
         //--------case 3 parachute delay--------------
         case 3:
-            if(frame_b.sec > (timer_buffer + 5)) frame_b.r_FSWstate = 4;						//odczekanie po separacji
+            if(RTC_d.time > (timer_buffer + 5)) stan_d.flightState = 4;						//odczekanie po separacji
             break;
         //--------case 4 separation wait-----------
         case 4:
-            if(((frame_b.LPS25H_velocity) > 40) || (frame_b.LPS25H_altitude < 250)) frame_b.r_FSWstate = 5;						//odczekanie do separacji
+            if(((LPS25H_d.velocity) > 40) || (LPS25H_d.altitude < 250)) stan_d.flightState = 5;						//odczekanie do separacji
             break;
         //-------case 5 separation------------------
         case 5:
             buzzer_d.mode = 1;																//3 sygna³y ci¹g³e
             buzzer_d.trigger = true;														//odblokowanie buzzera
-            timer_buffer = frame_b.sec;														//buforowanie czasu
-            frame_b.r_FSWstate = 6;
+            timer_buffer = RTC_d.time;														//buforowanie czasu
+            stan_d.flightState = 6;
             break;
         //-------case 6 after separation delay------
         case 6:
-            if(frame_b.sec > (timer_buffer + 10)) frame_b.r_FSWstate = 7;						//odczekanie po separacji
+            if(RTC_d.time > (timer_buffer + 10)) stan_d.flightState = 7;						//odczekanie po separacji
             break;
         //---------case 7 wait for landing----------
         case 7:
-            if((frame_b.LPS25H_altitude < 100) && (frame_b.LPS25H_velocity < 1) && (frame_b.LPS25H_velocity > -1)) frame_b.r_FSWstate = 8;
+            if((LPS25H_d.altitude < 100) && (LPS25H_d.velocity < 1) && (LPS25H_d.velocity > -1)) stan_d.flightState = 8;
             break;
         //---------case 8 END----------------
         case 8:
@@ -474,7 +463,6 @@ void Initialization(void) {
     MPU9150_WakeUp();
     //-------LPS25H Init------------
     LPS25H_config();
-	frame_b.max_altitude = 0;
     //-------LIS331HH Init---------
     LIS331HH_WakeUp();
     //-------LSM9DS0 Init----------

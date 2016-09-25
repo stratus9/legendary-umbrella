@@ -211,16 +211,8 @@ void prepareFrame(allData_t * allData){
 	allData->frame_b->frameASCII[i++] = (tmp_long/10)%10 + 48;
 	allData->frame_b->frameASCII[i++] = (tmp_long)%10 + 48;
 	allData->frame_b->frameASCII[i++] = ',';
-	//-------------Bat voltage----------------------
-	tmp = (int16_t)(allData->frame_b->r_voltage*1000);
-	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
-	allData->frame_b->frameASCII[i++] = '.';
-	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
-	allData->frame_b->frameASCII[i++] = (tmp/10)%10 + 48;
-	allData->frame_b->frameASCII[i++] = (tmp)%10 + 48;
-	allData->frame_b->frameASCII[i++] = ',';
 	//-------------VCC voltage----------------------
-	tmp = (int16_t)(allData->frame_b->vcc*1000);
+	tmp = (int16_t)(allData->Analog->VCC*1000);
 	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
 	allData->frame_b->frameASCII[i++] = '.';
 	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
@@ -799,13 +791,6 @@ void GPSbuf_init(GPS_t * gps){
 	gps->latitude[12] = '0';
 	
 	gps->fix = 0;
-}
-
-void maxAcc(frame_t * dane){
-	dane->MPU9150_sumacc = abs(dane->MPU9150_accel_x)+abs(dane->MPU9150_accel_x)+abs(dane->MPU9150_accel_x);
-	dane->LIS331HH_sumacc = abs(dane->LIS331HH_accel_x)+abs(dane->LIS331HH_accel_x)+abs(dane->LIS331HH_accel_x);
-	if(dane->MPU9150_sumacc > dane->LIS331HH_sumacc) dane->max_acc = dane->MPU9150_sumacc;
-	else dane->max_acc = dane->LIS331HH_sumacc;
 }
 
 float MinAngleVector3D(float x, float y, float z){

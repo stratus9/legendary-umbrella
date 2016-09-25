@@ -23,6 +23,5 @@ void decodeNMEA(GPS_t * GPS, ringBuffer_t * GPSbuf);
 void decodeTime(GPS_t GPS);
 void GPS2Frame(GPS_t * GPS, frame_t * frame);
 void GPSbuf_init(GPS_t * gps);
-void maxAcc(frame_t * dane);
 float MinAngleVector3D(float, float, float);
 #endif /* UTIL_H_ */

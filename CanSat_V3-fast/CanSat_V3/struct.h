@@ -230,65 +230,12 @@ typedef struct frame_s{
 	char frameASCII[600];
 	uint16_t iUART;
 	bool mutex;
-	//time
-	uint16_t sec;
-	//required telemetry
-	uint32_t r_count;
-	float r_voltage;
-	float vcc;
-	uint8_t r_FSWstate;
 	bool terminate;
 	float max_acc;
 	//GPS
 	char latitude[14];
 	char longitude[14];
 	char altitude[9];
-	//MPU9150
-	float MPU9150_accel_x;
-	float MPU9150_accel_y;
-	float MPU9150_accel_z;
-	float MPU9150_gyro_x;
-	float MPU9150_gyro_y;
-	float MPU9150_gyro_z;
-	float MPU9150_mag_x;
-	float MPU9150_mag_y;
-	float MPU9150_mag_z;
-	float MPU9150_temp;
-	float MPU9150_sumacc;
-	//LSM9DS0
-	float LSM9DS0_accel_x;
-	float LSM9DS0_accel_y;
-	float LSM9DS0_accel_z;
-	float LSM9DS0_gyro_x;
-	float LSM9DS0_gyro_y;
-	float LSM9DS0_gyro_z;
-	float LSM9DS0_mag_x;
-	float LSM9DS0_mag_y;
-	float LSM9DS0_mag_z;
-	float LSM9DS0_temp;
-	//BMP085
-	float BMP085_pressure;
-	float BMP085_temp;
-	//LPS25H
-	float LPS25H_pressure;
-	float LPS25H_temp;
-	float LPS25H_altitude;
-	float LPS25H_velocity;
-	//HMC5883L	float HMC5883L_mag_x;
-	float HMC5883L_mag_y;
-	float HMC5883L_mag_z;
-	//LIS331HH
-	float LIS331HH_accel_x;
-	float LIS331HH_accel_y;
-	float LIS331HH_accel_z;
-	float LIS331HH_sumacc;
-	//Light
-	uint8_t light1;
-	uint8_t light2;
-	uint8_t light3;
-	//state
-	float max_altitude;
-	float dif_altitude;
 } frame_t;
 
 //---------------------------------Bufor cykliczny-------------
@@ -343,6 +290,7 @@ typedef struct LPS25H_s{
 	float temp;
 	float start_pressure;
 	float altitude;
+	float max_altitude;
 	float velocity;
 } LPS25H_t;
 
@@ -388,11 +336,10 @@ typedef struct boardOrient_s{
 } boardOrient_t;
 
 typedef struct RTC_s{
-	uint32_t time;
+	uint32_t time;				//jest w sekundach -> zmieniæ na ms
 	uint32_t frameTeleCount;
 	uint32_t frameFlashCount;
 } RTC_t;
-
 		
 typedef struct allData_s{
 	MPU9150_t * MPU9150;
