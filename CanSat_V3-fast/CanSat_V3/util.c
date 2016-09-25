@@ -42,7 +42,7 @@ void prepareFrame(allData_t * allData){
 	allData->frame_b->frameASCII[i++] = '6';
 	allData->frame_b->frameASCII[i++] = ',';
 	//----------------packet count-----------------------
-	tmp = allData->frame_b->r_count;
+	tmp = allData->RTC->frameTeleCount;
 	allData->frame_b->frameASCII[i++] = (tmp/10000)%10 + 48;
 	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
 	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
@@ -192,7 +192,17 @@ void prepareFrame(allData_t * allData){
 	
 	//Local start
 	//---------------Time [s]----------------------------
-	tmp_long = allData->frame_b->sec;
+	tmp_long = allData->RTC->time;
+	allData->frame_b->frameASCII[i++] = (tmp_long/1000000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp_long/100000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp_long/10000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp_long/1000)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp_long/100)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp_long/10)%10 + 48;
+	allData->frame_b->frameASCII[i++] = (tmp_long)%10 + 48;
+	allData->frame_b->frameASCII[i++] = ',';
+	//---------------FLASH packet count---------------------------
+	tmp_long = allData->RTC->frameFlashCount;
 	allData->frame_b->frameASCII[i++] = (tmp_long/1000000)%10 + 48;
 	allData->frame_b->frameASCII[i++] = (tmp_long/100000)%10 + 48;
 	allData->frame_b->frameASCII[i++] = (tmp_long/10000)%10 + 48;

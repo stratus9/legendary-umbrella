@@ -43,6 +43,7 @@ static SensorsData_t SensorData_d;
 static SensorsData_t SensorData_b;
 static allData_t allData_d;
 static boardOrient_t boardOrient_d;
+static RTC_t RTC_d;
 static MPU9150_t MPU9150_d;
 static LSM9DS0_t LSM9DS0_d;
 static stan_t stan_d;
@@ -260,9 +261,8 @@ ISR(TCF0_OVF_vect) {
     frame_d.terminate = false;
     mission_time = frame_b.sec;
     if(stan_d.telemetry_trigger) {
-        if(frame_b.r_count < 9999) frame_b.r_count++;
-        else frame_b.r_count = 0;
-        frame_count = frame_b.r_count;
+        if(RTC_d.frameTeleCount< 99999) RTC_d.frameTeleCount++;
+        else RTC_d.frameTeleCount = 0;
         frame_b.iUART = 0;
         USARTD0_TXC_vect();
     }
@@ -340,6 +340,7 @@ void structInit(void) {
 	allData_d.frame = &frame_d;
 	allData_d.frame_b = &frame_b;
 	allData_d.boardOrient = &boardOrient_d;
+	allData_d.RTC = &RTC_d;
 }
 
 void BT_Start(frame_t * frame) {
@@ -742,7 +743,11 @@ int main(void) {
             StateUpdate();
             //----------------Prepare frame---------
             prepareFrame(&allData_d);
-            if(stan_d.flash_trigger) SPI_WriteFrame(&SPIaddress, 400, &frame_b);
+            if(stan_d.flash_trigger){
+				SPI_WriteFrame(&SPIaddress, 400, &frame_b);
+				if(RTC_d.frameFlashCount < 999999UL) RTC_d.frameFlashCount++;
+				else RTC_d.frameFlashCount = 0;
+			}
             if(!(frame_d.mutex)) frame_d = frame_b;							//jeœli frame_d nie zablokowane -> przepisz z bufora
             LED_PORT.OUTTGL = LED1;
             //----------------Kalibracja------------

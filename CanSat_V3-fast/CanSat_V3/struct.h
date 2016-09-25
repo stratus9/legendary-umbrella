@@ -382,9 +382,17 @@ typedef struct buzzer_s{
 } buzzer_t;
 
 typedef struct boardOrient_s{
+	
 	uint8_t config;		//0-error, 1-Xaxis, 2-Yaxis, 3-Zaxis
 	bool invert;
 } boardOrient_t;
+
+typedef struct RTC_s{
+	uint32_t time;
+	uint32_t frameTeleCount;
+	uint32_t frameFlashCount;
+} RTC_t;
+
 		
 typedef struct allData_s{
 	MPU9150_t * MPU9150;
@@ -398,6 +406,7 @@ typedef struct allData_s{
 	frame_t * frame;
 	frame_t * frame_b;
 	boardOrient_t * boardOrient;
+	RTC_t * RTC;
 } allData_t;
 
 #endif /* STRUCT_H_ */
