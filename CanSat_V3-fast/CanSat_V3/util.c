@@ -758,32 +758,6 @@ void decodeNMEA(GPS_t * GPS, ringBuffer_t * GPSbuf){
 	 */
 }
 
-void altitudeCalc(BMP085_t * BMP085, frame_t * frame){
-	//frame->r_altitude = press;
-	//volatile float tmp1, tmp2, tmp3, press, start_press;
-	//press = BMP085->pressure;
-	//start_press = BMP085->start_pressure;
-	//tmp1 = 1/5.255;
-	//tmp2 = press/start_press;
-	//tmp3 = (1-powf(tmp2, tmp1));
-	
-	//float old_altitude = frame->r_altitude;
-	//frame->r_altitude = (frame->BMP*0.7) + (44330.0*tmp3*0.3);	//Exponential smoothing
-	//frame->dif_altitude = frame->dif_altitude*0.9 + (frame->r_altitude-old_altitude)*0.1;
-}
-
-void altitudeCalcLPS(LPS25H_t * LPS25H, frame_t * frame){
-	volatile float new_altitude, press, start_press;
-	press = LPS25H->pressure;
-	start_press = LPS25H->start_pressure;
-	new_altitude = (1-pow(press/start_press, 0.1902632365))*43538.0;
-	
-	float old_altitude = frame->LPS25H_altitude;
-	frame->LPS25H_altitude = old_altitude*(1-LPS25H_alti_alpha) + new_altitude*LPS25H_alti_alpha;	//Exponential smoothing
-	frame->dif_altitude = frame->dif_altitude*(1-LPS25H_velo_alpha) + (frame->LPS25H_altitude-old_altitude)*LPS25H_velo_alpha;
-	frame->LPS25H_velocity = frame->dif_altitude * sampling_rate;
-}
-
 void GPSbuf_init(GPS_t * gps){
 	gps->altitude[0] = '0';
 	gps->altitude[1] = '0';

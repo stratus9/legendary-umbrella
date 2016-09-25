@@ -20,7 +20,7 @@ LPS25H.d LPS25H.o: .././LPS25H.c \
  e:\atmel\as7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\util\delay.h \
  e:\atmel\as7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\util\delay_basic.h \
  e:\atmel\as7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\math.h \
- .././struct.h .././CanSat.h .././I2C.h
+ .././struct.h .././CanSat.h .././I2C.h .././util.h
 
 e:\atmel\as7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\io.h:
 
@@ -69,3 +69,5 @@ e:\atmel\as7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\math.h:
 .././CanSat.h:
 
 .././I2C.h:
+
+.././util.h:

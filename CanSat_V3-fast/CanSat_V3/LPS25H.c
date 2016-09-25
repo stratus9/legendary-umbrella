@@ -15,6 +15,7 @@
 #include "struct.h"
 #include "CanSat.h"
 #include "I2C.h"
+#include "util.h"
 
 void LPS25H_config(void){
 	//--------------uœrednianie: press 512, temp 64-----------
@@ -33,7 +34,7 @@ void LPS25H_update(LPS25H_t * LPS25H){
 	LPS25H->raw_temp = bufor123[3] | (bufor123[4]<<8);
 }
 
-void LPS25H_calc(LPS25H_t * LPS25H, frame_t * frame){
+void LPS25H_calc(LPS25H_t * LPS25H){
 	float x1;
 	x1 = LPS25H->raw_pressure;
 	LPS25H->pressure = x1/4096.0;
@@ -41,10 +42,19 @@ void LPS25H_calc(LPS25H_t * LPS25H, frame_t * frame){
 	LPS25H->temp = x1/480.0+42.5;
 	
 	//check data
+}
+
+
+void altitudeCalcLPS(LPS25H_t * LPS25H){
+	//----Calculate new altitude----------------------------
+	float new_altitude = altitudeCalc(LPS25H->pressure, LPS25H->start_pressure);
 	
-	//save to frame struct
-	frame->LPS25H_pressure = LPS25H->pressure;
-	frame->LPS25H_temp = LPS25H->temp;
+	//----Exponenetal filtering-----------------------------
+	float old_altitude = LPS25H->altitude;
+	LPS25H->altitude = old_altitude*(1-LPS25H_alti_alpha) + new_altitude*LPS25H_alti_alpha;	//Exponential smoothing
+	
+	//----Ascent velocity-----------------------------------
+	LPS25H->velocity = LPS25H->velocity*(1-LPS25H_velo_alpha) + (LPS25H->altitude-old_altitude)*LPS25H_velo_alpha* sampling_rate;
 }
 
 uint8_t LPS25H_WhoIAm(void){

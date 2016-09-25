@@ -367,8 +367,8 @@ void SensorUpdate(allData_t * allData) {
     LIS331HH_Calc(allData->LIS331HH, &frame_b);
     //-----------------LPS25H---------------
     LPS25H_update(allData->LPS25H);
-    LPS25H_calc(allData->LPS25H, &frame_b);
-    altitudeCalcLPS(allData->LPS25H, &frame_b);
+    LPS25H_calc(allData->LPS25H);
+    altitudeCalcLPS(allData->LPS25H);
     //-----------------LSM9DS0--------------
     LSM9DS0_Update(allData->LSM9DS0);
     //-----------------Read ADC-------------

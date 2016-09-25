@@ -342,7 +342,8 @@ typedef struct LPS25H_s{
 	int16_t raw_temp;
 	float temp;
 	float start_pressure;
-	
+	float altitude;
+	float velocity;
 } LPS25H_t;
 
 typedef struct LIS331HH_s{
