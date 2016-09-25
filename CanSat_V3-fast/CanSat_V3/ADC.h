@@ -9,8 +9,6 @@
 #ifndef ADC_H_
 #define ADC_H_
 
-void ADC_Read(Analog_t * dane);
-
-
+void AnalogUpdate(Analog_t *);
 
 #endif /* ADC_H_ */

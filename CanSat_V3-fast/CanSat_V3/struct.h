@@ -188,10 +188,10 @@ typedef struct ADC_s{
 	float Vbat;
 	float Vsense2;
 	float Vusb;
-	float LS1;
-	float LS2;
-	float LS3;
-	float VCC;
+	float AnalogIn1;
+	float AnalogIn2;
+	float AnalogIn3;
+	float Vcc;
 	} Analog_t;
 
 //--------------------------obs³uga przycisków i diodek---------------------------

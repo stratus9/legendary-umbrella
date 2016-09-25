@@ -11,5 +11,5 @@
 void LIS331HH_RegWrite(uint8_t, uint8_t);
 void LIS331HH_WakeUp(void);
 void LIS331HH_Update(LIS331HH_t *);
-void LIS331HH_Calc(allData_t *);
+void LIS331HH_Calc(LIS331HH_t *);
 #endif /* LIS331HH_H_ */

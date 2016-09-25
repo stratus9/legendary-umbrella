@@ -17,7 +17,7 @@ ADC.d ADC.o: .././ADC.c \
  e:\atmel\as7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\stdlib.h \
  e:\atmel\as7\7.0\toolchain\avr8\avr8-gnu-toolchain\lib\gcc\avr\4.9.2\include\stdbool.h \
  e:\atmel\as7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\math.h \
- .././struct.h .././ADC.h
+ .././struct.h .././ADC.h .././CanSat.h
 
 e:\atmel\as7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\io.h:
 
@@ -58,3 +58,5 @@ e:\atmel\as7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\math.h:
 .././struct.h:
 
 .././ADC.h:
+
+.././CanSat.h:

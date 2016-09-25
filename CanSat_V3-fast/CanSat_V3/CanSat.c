@@ -359,10 +359,10 @@ void BT_Start(frame_t * frame) {
 void SensorUpdate(allData_t * allData) {
     //-----------------MPU9150--------------
     MPU9150_RawUpdate(allData->MPU9150);
-    MPU9150_Conv(allData);
+    MPU9150_Conv(allData->MPU9150);
     //-----------------LIS331HH-------------
     LIS331HH_Update(allData->LIS331HH);
-    LIS331HH_Calc(allData);
+    LIS331HH_Calc(allData->LIS331HH);
     //-----------------LPS25H---------------
     LPS25H_update(allData->LPS25H);
     LPS25H_calc(allData->LPS25H);
@@ -370,18 +370,14 @@ void SensorUpdate(allData_t * allData) {
     //-----------------LSM9DS0--------------
     LSM9DS0_Update(allData->LSM9DS0);
     //-----------------Read ADC-------------
-    ADC_Read(allData->Analog);
+    AnalogUpdate(allData->Analog);
 	
 	
 	//do router lub funkcji i wywaliæ jak najwiêcej!
-    //frame_b.r_voltage = frame_b.r_voltage*(1.0-BAT_voltage_alpha) + ADC_d.Vbat*BAT_voltage_alpha;
-	//frame_b.vcc = frame_b.vcc*(1.0-BAT_voltage_alpha) + ADC_d.VCC*BAT_voltage_alpha;
     //-----------------Additional-----------
     if(LPS25H_d.altitude > LPS25H_d.max_altitude) LPS25H_d.max_altitude = LPS25H_d.altitude;
     
-    //frame_b.light1 = ((ADC_d.LS1 * 100) / 255);
-    //frame_b.light2 = ((ADC_d.LS2 * 100) / 255);
-    //frame_b.light3 = ((ADC_d.LS3 * 100) / 255);
+    
 	
 }
 

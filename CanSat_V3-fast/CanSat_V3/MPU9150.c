@@ -124,8 +124,7 @@ void MPU9150_MagCal(MPU9150_t * data){
 	(*data).sens_mag_z = z;
 }
 
-void MPU9150_Conv(allData_t * allData){
-	MPU9150_t * MPU9150 = allData->MPU9150;
+void MPU9150_Conv(MPU9150_t * MPU9150){
 	MPU9150->mag_x = (MPU9150->raw_mag_x + ((MPU9150->raw_mag_x * MPU9150->sens_mag_x) >> 8)) * 0.3;
 	MPU9150->mag_y = (MPU9150->raw_mag_y + ((MPU9150->raw_mag_y * MPU9150->sens_mag_y) >> 8)) * 0.3;
 	MPU9150->mag_z = (MPU9150->raw_mag_z + ((MPU9150->raw_mag_z * MPU9150->sens_mag_z) >> 8)) * 0.3;

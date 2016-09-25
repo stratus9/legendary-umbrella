@@ -52,15 +52,15 @@ void LIS331HH_Update(LIS331HH_t * data){
 	data->raw_accel_z = tmp3;
 }
 
-void LIS331HH_Calc(allData_t * allData){
+void LIS331HH_Calc(LIS331HH_t * LIS331HH){
 	float volatile tmp1, tmp2, tmp3;
 	float offset = -0.2246;
 	
-	tmp1 = (allData->LIS331HH->raw_accel_x)*(48/65536.0);
-	tmp2 = (allData->LIS331HH->raw_accel_y)*(48/65536.0);
-	tmp3 = (allData->LIS331HH->raw_accel_z)*(48/65536.0);
+	tmp1 = (LIS331HH->raw_accel_x)*(48/65536.0);
+	tmp2 = (LIS331HH->raw_accel_y)*(48/65536.0);
+	tmp3 = (LIS331HH->raw_accel_z)*(48/65536.0);
 	
-	allData->LIS331HH->accel_x = tmp1-offset;
-	allData->LIS331HH->accel_y = tmp2-offset;
-	allData->LIS331HH->accel_z = tmp3+offset;
+	LIS331HH->accel_x = tmp1-offset;
+	LIS331HH->accel_y = tmp2-offset;
+	LIS331HH->accel_z = tmp3+offset;
 }

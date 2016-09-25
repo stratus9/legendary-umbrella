@@ -212,7 +212,7 @@ void prepareFrame(allData_t * allData){
 	allData->frame_b->frameASCII[i++] = (tmp_long)%10 + 48;
 	allData->frame_b->frameASCII[i++] = ',';
 	//-------------VCC voltage----------------------
-	tmp = (int16_t)(allData->Analog->VCC*1000);
+	tmp = (int16_t)(allData->Analog->Vcc*1000);
 	allData->frame_b->frameASCII[i++] = (tmp/1000)%10 + 48;
 	allData->frame_b->frameASCII[i++] = '.';
 	allData->frame_b->frameASCII[i++] = (tmp/100)%10 + 48;
