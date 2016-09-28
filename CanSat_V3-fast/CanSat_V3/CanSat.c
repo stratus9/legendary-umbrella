@@ -559,13 +559,13 @@ void WarmUpMemoryOperations() {
 bool DetectInitOrientation(allData_t * allData){
 	//napisaæ funkcjê wykrywaj¹c¹ orientacjê na starcie
 	//----Local variable------------------------------------------------
-	float accTotal = 0;
-	float mean_accX = 0;
-	float mean_accY = 0;
-	float mean_accZ = 0;
-	float abs_mean_accX = 0;
-	float abs_mean_accY = 0;
-	float abs_mean_accZ = 0;
+	volatile float accTotal = 0;
+	volatile float mean_accX = 0;
+	volatile float mean_accY = 0;
+	volatile float mean_accZ = 0;
+	volatile float abs_mean_accX = 0;
+	volatile float abs_mean_accY = 0;
+	volatile float abs_mean_accZ = 0;
 	
 	//----Attach local pointer to main data struct----------------------
 	float * accX = &(allData->SensorsData->accel_x);
@@ -575,6 +575,7 @@ bool DetectInitOrientation(allData_t * allData){
 	//-------Update all sensors data and calculate mean from n sample----
 	for(uint8_t i=0;i<100;i++){
 		SensorUpdate(&allData_d);
+		SensorDataFusion(&allData_d);
 		mean_accX += *accX;
 		mean_accY += *accY;
 		mean_accZ += *accZ;
@@ -596,9 +597,9 @@ bool DetectInitOrientation(allData_t * allData){
 	else allData->boardOrient->config = 3;																			//Z axis = main
 	
 	switch(allData->boardOrient->config){
-		case 1: if(mean_accX < 0) allData->boardOrient->invert = true; break;
-		case 2: if(mean_accY < 0) allData->boardOrient->invert = true; break;
-		case 3: if(mean_accZ < 0) allData->boardOrient->invert = true; break;
+		case 1: if(mean_accX < 0.5) allData->boardOrient->invert = true; break;
+		case 2: if(mean_accY < 0.5) allData->boardOrient->invert = true; break;
+		case 3: if(mean_accZ < 0.5) allData->boardOrient->invert = true; break;
 	}
 	
 	//-------Calculate launchpad angle------------------------------------
@@ -688,12 +689,15 @@ void SensorDataFusion(allData_t * allData){
 	//-----Sensor fusion---------------------------------------
 	// Tu bêd¹ dziaæ siê czary
 	// Tymczsowo zwyk³e przepisanie zmiennych
+	// Dodaæ odejmowanie grawitacji
 	allData->SensorsData->accel_x = MPU9150_accel_x;
 	allData->SensorsData->accel_y = MPU9150_accel_y;
 	allData->SensorsData->accel_z = MPU9150_accel_z;
 	allData->SensorsData->gyro_x = MPU9150_gyro_x;
 	allData->SensorsData->gyro_y = MPU9150_gyro_y;
 	allData->SensorsData->gyro_z = MPU9150_gyro_z;
+	allData->SensorsData->altitude = allData->LPS25H->altitude;
+	allData->SensorsData->ascentVelo = allData->LPS25H->velocity;
 }
 
 void CalibrationStart() {

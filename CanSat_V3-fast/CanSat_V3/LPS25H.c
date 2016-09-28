@@ -47,6 +47,7 @@ void LPS25H_calc(LPS25H_t * LPS25H){
 
 void altitudeCalcLPS(LPS25H_t * LPS25H){
 	//----Calculate new altitude----------------------------
+	if(LPS25H->start_pressure == 0) LPS25H->start_pressure = LPS25H->pressure;
 	float new_altitude = altitudeCalc(LPS25H->pressure, LPS25H->start_pressure);
 	
 	//----Exponenetal filtering-----------------------------
