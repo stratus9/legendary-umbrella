@@ -13,7 +13,7 @@
 #define CPU_clock		32							//czêstotliwoœæ taktowania procesora
 #define sampling_rate	25.0						//czêstotliwoœæ próbkowania w Hz
 #define sampling_time	1/sampling_rate*1000.0		//czas próbkowania w ms
-#define telemetry_rate	1							//czêstotliwoœæ telemetrii
+#define telemetry_rate	10.0							//czêstotliwoœæ telemetrii
 #define telemetry_time	1/telemetry_rate*1000.0		//czas telemetrii
 #define BUZZER_ONOFF	1							//wy³¹cznik buzzera
 #define STARTUP_tele	1							//telemetria wy³¹czona na starcie

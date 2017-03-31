@@ -345,6 +345,22 @@ void BT_Start(struct frame_t * frame) {
     frame->frameASCII[i++] = '1';
     frame->frameASCII[i++] = '\r';
     frame->frameASCII[i++] = '\n';
+	
+	frame->frameASCII[i++] = '\r';	//\r\n+INQ=1\r\n
+	frame->frameASCII[i++] = '\n';
+	frame->frameASCII[i++] = '+';
+	frame->frameASCII[i++] = 'S';
+	frame->frameASCII[i++] = 'T';
+	frame->frameASCII[i++] = 'P';
+	frame->frameASCII[i++] = 'I';
+	frame->frameASCII[i++] = 'N';
+	frame->frameASCII[i++] = '=';
+	frame->frameASCII[i++] = '0';
+	frame->frameASCII[i++] = '0';
+	frame->frameASCII[i++] = '0';
+	frame->frameASCII[i++] = '0';
+	frame->frameASCII[i++] = '\r';
+	frame->frameASCII[i++] = '\n';
     frame->iUART = 0;
 }
 
