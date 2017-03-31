@@ -57,52 +57,52 @@ void prepareFrame(struct frame_t *  frame, struct stan_t *  stan, struct GPS_t *
 	frame->frameASCII[i++] = (tmp/10)%10 + 48;
 	frame->frameASCII[i++] = (tmp)%10 + 48;
 	frame->frameASCII[i++] = ',';
-	//------------Flight state------------------------
-	tmp = frame->r_FSWstate;
-	frame->frameASCII[i++] =  tmp+ 48;
-	frame->frameASCII[i++] =  ',';
-	//------------FSW state-------------------------
-	frame->frameASCII[i++] = 'S';
-	frame->frameASCII[i++] = stan->armed_trigger+48;
-	frame->frameASCII[i++] = stan->telemetry_trigger+48;
-	frame->frameASCII[i++] = stan->flash_trigger+48;
-	frame->frameASCII[i++] = stan->callibration+48;
-	frame->frameASCII[i++] = ',';
-	
-	//===============Pressure & altitude===================
-	//--------------LPS25H Altitude----------------------------
-	tmp = frame->LPS25H_altitude;
-	tmpf = (frame->LPS25H_altitude - truncf(frame->LPS25H_altitude))*100;
-	if((tmp < 0) || (tmpf <0)){
-		tmp = -tmp;
-		tmpf = -tmpf;
-		frame->frameASCII[i++] = '-';
-	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmpf/10)%10 + 48;
-	frame->frameASCII[i++] = (tmpf/1)%10 + 48;
-	frame->frameASCII[i++] = ',';
-	
-//------------------LPS25H Velocity------------------------------
-	tmp = frame->LPS25H_velocity*10;	
-	if(tmp < 0){
-		tmp = -tmp;
-		frame->frameASCII[i++] = '-';
-	}
-	else frame->frameASCII[i++] = '+';
-	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
-	frame->frameASCII[i++] = (tmp/100)%10 + 48;
-	frame->frameASCII[i++] = (tmp/10)%10 + 48;
-	frame->frameASCII[i++] = '.';
-	frame->frameASCII[i++] = (tmp)%10 + 48;
-	frame->frameASCII[i++] = ',';
+// 	//------------Flight state------------------------
+// 	tmp = frame->r_FSWstate;
+// 	frame->frameASCII[i++] =  tmp+ 48;
+// 	frame->frameASCII[i++] =  ',';
+// 	//------------FSW state-------------------------
+// 	frame->frameASCII[i++] = 'S';
+// 	frame->frameASCII[i++] = stan->armed_trigger+48;
+// 	frame->frameASCII[i++] = stan->telemetry_trigger+48;
+// 	frame->frameASCII[i++] = stan->flash_trigger+48;
+// 	frame->frameASCII[i++] = stan->callibration+48;
+// 	frame->frameASCII[i++] = ',';
+// 	
+// 	//===============Pressure & altitude===================
+// 	//--------------LPS25H Altitude----------------------------
+// 	tmp = frame->LPS25H_altitude;
+// 	tmpf = (frame->LPS25H_altitude - truncf(frame->LPS25H_altitude))*100;
+// 	if((tmp < 0) || (tmpf <0)){
+// 		tmp = -tmp;
+// 		tmpf = -tmpf;
+// 		frame->frameASCII[i++] = '-';
+// 	}
+// 	else frame->frameASCII[i++] = '+';
+// 	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
+// 	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
+// 	frame->frameASCII[i++] = (tmp/100)%10 + 48;
+// 	frame->frameASCII[i++] = (tmp/10)%10 + 48;
+// 	frame->frameASCII[i++] = (tmp)%10 + 48;
+// 	frame->frameASCII[i++] = '.';
+// 	frame->frameASCII[i++] = (tmpf/10)%10 + 48;
+// 	frame->frameASCII[i++] = (tmpf/1)%10 + 48;
+// 	frame->frameASCII[i++] = ',';
+// 	
+// //------------------LPS25H Velocity------------------------------
+// 	tmp = frame->LPS25H_velocity*10;	
+// 	if(tmp < 0){
+// 		tmp = -tmp;
+// 		frame->frameASCII[i++] = '-';
+// 	}
+// 	else frame->frameASCII[i++] = '+';
+// 	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
+// 	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
+// 	frame->frameASCII[i++] = (tmp/100)%10 + 48;
+// 	frame->frameASCII[i++] = (tmp/10)%10 + 48;
+// 	frame->frameASCII[i++] = '.';
+// 	frame->frameASCII[i++] = (tmp)%10 + 48;
+// 	frame->frameASCII[i++] = ',';
 	
 	//===============Accel=========================
 	//--------------MPU9150 Accel x----------------------
@@ -136,53 +136,83 @@ void prepareFrame(struct frame_t *  frame, struct stan_t *  stan, struct GPS_t *
 	frame->frameASCII[i++] = '.';
 	frame->frameASCII[i++] = (tmp)%10 + 48;
 	frame->frameASCII[i++] = ',';
-
-	//==============GPS============================
-	//--------------GPS lat------------------------------
-	frame->frameASCII[i++] = gps->latitude[0];
-	frame->frameASCII[i++] = gps->latitude[1];
-	frame->frameASCII[i++] = gps->latitude[2];
-	frame->frameASCII[i++] = gps->latitude[3];
-	frame->frameASCII[i++] = gps->latitude[4];
-	frame->frameASCII[i++] = gps->latitude[5];
-	frame->frameASCII[i++] = gps->latitude[6];
-	frame->frameASCII[i++] = gps->latitude[7];
-	frame->frameASCII[i++] = gps->latitude[8];
-	frame->frameASCII[i++] = gps->latitude[9];
-	frame->frameASCII[i++] = gps->latitude[10];
-	frame->frameASCII[i++] = ',';
-	//--------------GPS long------------------------------
-	frame->frameASCII[i++] = gps->longitude[0];
-	frame->frameASCII[i++] = gps->longitude[1];
-	frame->frameASCII[i++] = gps->longitude[2];
-	frame->frameASCII[i++] = gps->longitude[3];
-	frame->frameASCII[i++] = gps->longitude[4];
-	frame->frameASCII[i++] = gps->longitude[5];
-	frame->frameASCII[i++] = gps->longitude[6];
-	frame->frameASCII[i++] = gps->longitude[7];
-	frame->frameASCII[i++] = gps->longitude[8];
-	frame->frameASCII[i++] = gps->longitude[9];
-	frame->frameASCII[i++] = gps->longitude[10];
-	frame->frameASCII[i++] = ',';
-	//--------------GPS altitude------------------------------
-	frame->frameASCII[i++] = gps->altitude[0];
-	frame->frameASCII[i++] = gps->altitude[1];
-	frame->frameASCII[i++] = gps->altitude[2];
-	frame->frameASCII[i++] = gps->altitude[3];
-	frame->frameASCII[i++] = gps->altitude[4];
-	frame->frameASCII[i++] = gps->altitude[5];
-	frame->frameASCII[i++] = gps->altitude[6];
-	frame->frameASCII[i++] = gps->altitude[7];
-	frame->frameASCII[i++] = gps->altitude[8];
-	frame->frameASCII[i++] = ',';
-	//--------------GPS fix------------------------------
-	//frame->frameASCII[i++] = 'F';
-	frame->frameASCII[i++] = gps->fix+48;
+	
+	tmp = frame->MPU9150_gyro_x*10;
+	if(tmp < 0){
+		tmp = -tmp;
+		frame->frameASCII[i++] = '-';
+	}
+	else frame->frameASCII[i++] = '+';
+	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
+	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
+	frame->frameASCII[i++] = (tmp/100)%10 + 48;
+	frame->frameASCII[i++] = (tmp/10)%10 + 48;
+	frame->frameASCII[i++] = '.';
+	frame->frameASCII[i++] = (tmp)%10 + 48;
 	frame->frameASCII[i++] = ',';
 	
-	//--------------Checksum----------------------------
-	frame->frameASCII[i++] = '1';
-	frame->frameASCII[i++] = '3';
+	//--------------MPU9150 Gyro z----------------------
+	
+	tmp = frame->MPU9150_gyro_z*10;
+	if(tmp < 0){
+		tmp = -tmp;
+		frame->frameASCII[i++] = '-';
+	}
+	else frame->frameASCII[i++] = '+';
+	frame->frameASCII[i++] = (tmp/10000)%10 + 48;
+	frame->frameASCII[i++] = (tmp/1000)%10 + 48;
+	frame->frameASCII[i++] = (tmp/100)%10 + 48;
+	frame->frameASCII[i++] = (tmp/10)%10 + 48;
+	frame->frameASCII[i++] = '.';
+	frame->frameASCII[i++] = (tmp)%10 + 48;
+	frame->frameASCII[i++] = ',';
+	
+	//==============GPS============================
+	//--------------GPS lat------------------------------
+// 	frame->frameASCII[i++] = gps->latitude[0];
+// 	frame->frameASCII[i++] = gps->latitude[1];
+// 	frame->frameASCII[i++] = gps->latitude[2];
+// 	frame->frameASCII[i++] = gps->latitude[3];
+// 	frame->frameASCII[i++] = gps->latitude[4];
+// 	frame->frameASCII[i++] = gps->latitude[5];
+// 	frame->frameASCII[i++] = gps->latitude[6];
+// 	frame->frameASCII[i++] = gps->latitude[7];
+// 	frame->frameASCII[i++] = gps->latitude[8];
+// 	frame->frameASCII[i++] = gps->latitude[9];
+// 	frame->frameASCII[i++] = gps->latitude[10];
+// 	frame->frameASCII[i++] = ',';
+// 	//--------------GPS long------------------------------
+// 	frame->frameASCII[i++] = gps->longitude[0];
+// 	frame->frameASCII[i++] = gps->longitude[1];
+// 	frame->frameASCII[i++] = gps->longitude[2];
+// 	frame->frameASCII[i++] = gps->longitude[3];
+// 	frame->frameASCII[i++] = gps->longitude[4];
+// 	frame->frameASCII[i++] = gps->longitude[5];
+// 	frame->frameASCII[i++] = gps->longitude[6];
+// 	frame->frameASCII[i++] = gps->longitude[7];
+// 	frame->frameASCII[i++] = gps->longitude[8];
+// 	frame->frameASCII[i++] = gps->longitude[9];
+// 	frame->frameASCII[i++] = gps->longitude[10];
+// 	frame->frameASCII[i++] = ',';
+// 	//--------------GPS altitude------------------------------
+// 	frame->frameASCII[i++] = gps->altitude[0];
+// 	frame->frameASCII[i++] = gps->altitude[1];
+// 	frame->frameASCII[i++] = gps->altitude[2];
+// 	frame->frameASCII[i++] = gps->altitude[3];
+// 	frame->frameASCII[i++] = gps->altitude[4];
+// 	frame->frameASCII[i++] = gps->altitude[5];
+// 	frame->frameASCII[i++] = gps->altitude[6];
+// 	frame->frameASCII[i++] = gps->altitude[7];
+// 	frame->frameASCII[i++] = gps->altitude[8];
+// 	frame->frameASCII[i++] = ',';
+// 	//--------------GPS fix------------------------------
+// 	//frame->frameASCII[i++] = 'F';
+// 	frame->frameASCII[i++] = gps->fix+48;
+// 	frame->frameASCII[i++] = ',';
+// 	
+// 	//--------------Checksum----------------------------
+// 	frame->frameASCII[i++] = '1';
+// 	frame->frameASCII[i++] = '3';
 	
 	//--------------Remote end------------------------------
 	frame->frameASCII[i++] = ',';
