@@ -10,9 +10,10 @@
 #define LPS25H_H_
 void LPS25H_config(void);
 
-void LPS25H_update(struct LPS25H_t * LPS25H);
+void LPS25H_update(LPS25H_t * LPS25H);
 void LPS25H_startConv(void);
 uint8_t LPS25H_WhoIAm(void);
 uint8_t LPS25H_ReadReg(uint8_t adres);
-void LPS25H_calc(struct LPS25H_t * LPS25H, struct frame_t * frame);
+void altitudeCalcLPS(LPS25H_t * LPS25H);
+void LPS25H_calc(LPS25H_t * LPS25H);
 #endif /* LPS25H_H_ */

@@ -31,7 +31,7 @@ void LIS331HH_WakeUp(void){
 	LIS331HH_RegWrite(0x23,0x30);	//+/-24g
 }
 
-void LIS331HH_Update(struct LIS331HH_t * data){
+void LIS331HH_Update(LIS331HH_t * data){
 	SENSORS_I2C.MASTER.ADDR = 0x32;
 	while(!(SENSORS_I2C.MASTER.STATUS & TWI_MASTER_WIF_bm)) {}
 	SENSORS_I2C.MASTER.DATA = (0x28 | 0x80);
@@ -52,15 +52,15 @@ void LIS331HH_Update(struct LIS331HH_t * data){
 	data->raw_accel_z = tmp3;
 }
 
-void LIS331HH_Calc(struct LIS331HH_t * data1, struct frame_t * data2){
+void LIS331HH_Calc(LIS331HH_t * LIS331HH){
 	float volatile tmp1, tmp2, tmp3;
 	float offset = -0.2246;
 	
-	tmp1 = (data1->raw_accel_x)*(48/65536.0);
-	tmp2 = (data1->raw_accel_y)*(48/65536.0);
-	tmp3 = (data1->raw_accel_z)*(48/65536.0);
+	tmp1 = (LIS331HH->raw_accel_x)*(48/65536.0);
+	tmp2 = (LIS331HH->raw_accel_y)*(48/65536.0);
+	tmp3 = (LIS331HH->raw_accel_z)*(48/65536.0);
 	
-	data2->LIS331HH_accel_x = tmp1-offset;
-	data2->LIS331HH_accel_y = tmp2-offset;
-	data2->LIS331HH_accel_z = tmp3+offset;
+	LIS331HH->accel_x = tmp1-offset;
+	LIS331HH->accel_y = tmp2-offset;
+	LIS331HH->accel_z = tmp3+offset;
 }

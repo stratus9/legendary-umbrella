@@ -13,6 +13,7 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <util/atomic.h>
+#include <math.h>
 #include "Initialization.h"
 #include "struct.h"
 #include "CanSat.h"
@@ -38,22 +39,28 @@
 
 
 //-----------------------------------Struktury globalne---------------------------------------------
-static struct MPU9150_t MPU9150_d;
-static struct LSM9DS0_t LSM9DS0_d;
-static struct stan_t stan_d;
-struct ADC_t ADC_d;
-static struct frame_t frame_d;
-static struct frame_t frame_b;
-static struct GPS_t GPS_b;
-static struct GPS_t GPS_d;
-static struct LPS25H_t LPS25H_d;
-static struct LIS331HH_t LIS331HH_d;
-static struct Calibration_t Calibration_d;
-static struct buzzer_t buzzer_d;
+static SensorsData_t SensorData_d;
+static SensorsData_t SensorData_b;
+static allData_t allData_d;
+static boardOrient_t boardOrient_d;
+static RTC_t RTC_d;
+static MPU9150_t MPU9150_d;
+static LSM9DS0_t LSM9DS0_d;
+static stan_t stan_d;
+Analog_t ADC_d;
+static frame_t frame_d;
+static frame_t frame_b;
+static GPS_t GPS_b;
+static GPS_t GPS_d;
+static LPS25H_t LPS25H_d;
+static LIS331HH_t LIS331HH_d;
+static Calibration_t Calibration_d;
+static buzzer_t buzzer_d;
 static uint32_t SPIaddress = 0;
 static float timer_buffer = 0;
 uint32_t mission_time = 0;
 uint32_t frame_count = 0;
+
 
 //----------------------Bad ISR handling------------------------
 ISR(BADISR_vect) {
@@ -205,8 +212,8 @@ ISR(USARTD0_RXC_vect) {
 
 //----------------------Sensors update-------------------------------
 ISR(TCC0_OVF_vect) {
-    stan_d.new_data = true;
-    frame_b.sec++;
+    allData_d.stan->new_data = true;
+    allData_d.RTC->time++;
 }
 
 //----------------------Buzzer---------------------------------------
@@ -252,11 +259,9 @@ ISR(TCE0_OVF_vect) {
 ISR(TCF0_OVF_vect) {
     LED_PORT.OUTTGL = LED4;
     frame_d.terminate = false;
-    mission_time = frame_b.sec;
     if(stan_d.telemetry_trigger) {
-        if(frame_b.r_count < 9999) frame_b.r_count++;
-        else frame_b.r_count = 0;
-        frame_count = frame_b.r_count;
+        if(RTC_d.frameTeleCount< 99999) RTC_d.frameTeleCount++;
+        else RTC_d.frameTeleCount = 0;
         frame_b.iUART = 0;
         USARTD0_TXC_vect();
     }
@@ -317,23 +322,26 @@ void SensorCal(void) {
 }
 
 void structInit(void) {
-    MPU9150_d.offset_gyro_x = -2318;
-    MPU9150_d.offset_gyro_y = 1989;
-    MPU9150_d.offset_gyro_z = -591;
-    MPU9150_d.offset_accel_x = 0;
-    MPU9150_d.offset_accel_y = 0;
-    MPU9150_d.offset_accel_z = 0;
-    LPS25H_d.start_pressure = 1008;
     frame_d.iUART = 0;
-    frame_d.r_count = 0;
     stan_d.new_data = false;
     stan_d.new_frame = false;
-	ADC_Read(&ADC_d);
-	frame_b.r_voltage = ADC_d.Vsense;
-	frame_b.vcc = ADC_d.VCC;
+	
+	//----------------------Initialize allData_d--------------------
+	allData_d.Analog = &ADC_d;
+	allData_d.MPU9150 = &MPU9150_d;
+	allData_d.LSM9DS0 = &LSM9DS0_d;
+	allData_d.LPS25H = &LPS25H_d;
+	allData_d.GPS = &GPS_d;
+	allData_d.stan = &stan_d;
+	allData_d.LIS331HH = &LIS331HH_d;
+	allData_d.SensorsData = &SensorData_d;
+	allData_d.frame = &frame_d;
+	allData_d.frame_b = &frame_b;
+	allData_d.boardOrient = &boardOrient_d;
+	allData_d.RTC = &RTC_d;
 }
 
-void BT_Start(struct frame_t * frame) {
+void BT_Start(frame_t * frame) {
     int i = 0;
     frame->frameASCII[i++] = '\r';	//\r\n+INQ=1\r\n
     frame->frameASCII[i++] = '\n';
@@ -348,89 +356,79 @@ void BT_Start(struct frame_t * frame) {
     frame->iUART = 0;
 }
 
-void SensorUpdate(void) {
+void SensorUpdate(allData_t * allData) {
     //-----------------MPU9150--------------
-    MPU9150_RawUpdate(&MPU9150_d);
-    MPU9150_Conv(&MPU9150_d, &frame_b);
+    MPU9150_RawUpdate(allData->MPU9150);
+    MPU9150_Conv(allData->MPU9150);
     //-----------------LIS331HH-------------
-    LIS331HH_Update(&LIS331HH_d);
-    LIS331HH_Calc(&LIS331HH_d, &frame_b);
+    LIS331HH_Update(allData->LIS331HH);
+    LIS331HH_Calc(allData->LIS331HH);
     //-----------------LPS25H---------------
-    LPS25H_update(&LPS25H_d);
-    LPS25H_calc(&LPS25H_d, &frame_b);
-    altitudeCalcLPS(&LPS25H_d, &frame_b);
+    LPS25H_update(allData->LPS25H);
+    LPS25H_calc(allData->LPS25H);
+    altitudeCalcLPS(allData->LPS25H);
     //-----------------LSM9DS0--------------
-    LSM9DS0_Update(&LSM9DS0_d);
+    LSM9DS0_Update(allData->LSM9DS0);
     //-----------------Read ADC-------------
-    ADC_Read(&ADC_d);
-    frame_b.r_voltage = frame_b.r_voltage*(1.0-BAT_voltage_alpha) + ADC_d.Vsense*BAT_voltage_alpha;
-	frame_b.vcc = frame_b.vcc*(1.0-BAT_voltage_alpha) + ADC_d.VCC*BAT_voltage_alpha;
+    AnalogUpdate(allData->Analog);
+	
+	
+	//do router lub funkcji i wywaliæ jak najwiêcej!
     //-----------------Additional-----------
-    if(frame_b.LPS25H_altitude > frame_b.max_altitude) frame_b.max_altitude = frame_b.LPS25H_altitude;
-    frame_b.LSM9DS0_accel_x = LSM9DS0_d.accel_x;
-    frame_b.LSM9DS0_accel_y = LSM9DS0_d.accel_y;
-    frame_b.LSM9DS0_accel_z = LSM9DS0_d.accel_z;
-    frame_b.LSM9DS0_gyro_x = LSM9DS0_d.gyro_x;
-    frame_b.LSM9DS0_gyro_y = LSM9DS0_d.gyro_y;
-    frame_b.LSM9DS0_gyro_z = LSM9DS0_d.gyro_z;
-    frame_b.LSM9DS0_mag_x = LSM9DS0_d.mag_x;
-    frame_b.LSM9DS0_mag_y = LSM9DS0_d.mag_y;
-    frame_b.LSM9DS0_mag_z = LSM9DS0_d.mag_z;
-    frame_b.LSM9DS0_temp = LSM9DS0_d.temp;
-    frame_b.light1 = ((ADC_d.LS1 * 100) / 255);
-    frame_b.light2 = ((ADC_d.LS2 * 100) / 255);
-    frame_b.light3 = ((ADC_d.LS3 * 100) / 255);
-	maxAcc(&frame_b);
+    if(LPS25H_d.altitude > LPS25H_d.max_altitude) LPS25H_d.max_altitude = LPS25H_d.altitude;
+    
+    
+	
 }
 
 void StateUpdate(void) {
     if(!(stan_d.armed_trigger)) {
-        frame_b.r_FSWstate = 0;
+        stan_d.flightState = 0;
         buzzer_d.mode = 0;
 		//stan_d.flash_trigger = false;
         PORTD_OUTCLR = PIN1_bm;
     } else {
-        switch(frame_b.r_FSWstate) {
+        switch(stan_d.flightState) {
         //--------case 0 preflight-----------------
         case 0:
-            if((frame_b.max_acc > 3) || (frame_b.LPS25H_velocity > 10)) frame_b.r_FSWstate = 1;	//wykrycie startu
+            if((SensorData_d.accel_x > 3) || (LPS25H_d.velocity > 10)) stan_d.flightState = 1;	//wykrycie startu
             buzzer_d.mode = 0;
-			frame_b.max_altitude = frame_b.LPS25H_altitude;
+			LPS25H_d.max_altitude = LPS25H_d.altitude;
             break;
         //--------case 1 flight wait for apogee----
         case 1:
 			stan_d.flash_trigger = true;
-            if((frame_b.max_altitude - frame_b.LPS25H_altitude) > 10.0) frame_b.r_FSWstate = 2;	//wykrycie pu³apu
+            if((LPS25H_d.max_altitude - LPS25H_d.altitude) > 10.0) stan_d.flightState = 2;	//wykrycie pu³apu
             break;
         //-------case 2 delay + sound signal + deployment------------------
         case 2:
             buzzer_d.mode = 1;																//3 sygna³y ci¹g³e
             buzzer_d.trigger = true;														//odblokowanie buzzera
-            timer_buffer = frame_b.sec;														//buforowanie czasu
-            frame_b.r_FSWstate = 3;
+            timer_buffer = RTC_d.time;														//buforowanie czasu
+            stan_d.flightState = 3;
             break;
         //--------case 3 parachute delay--------------
         case 3:
-            if(frame_b.sec > (timer_buffer + 5)) frame_b.r_FSWstate = 4;						//odczekanie po separacji
+            if(RTC_d.time > (timer_buffer + 5)) stan_d.flightState = 4;						//odczekanie po separacji
             break;
         //--------case 4 separation wait-----------
         case 4:
-            if(((frame_b.LPS25H_velocity) > 40) || (frame_b.LPS25H_altitude < 250)) frame_b.r_FSWstate = 5;						//odczekanie do separacji
+            if(((LPS25H_d.velocity) > 40) || (LPS25H_d.altitude < 250)) stan_d.flightState = 5;						//odczekanie do separacji
             break;
         //-------case 5 separation------------------
         case 5:
             buzzer_d.mode = 1;																//3 sygna³y ci¹g³e
             buzzer_d.trigger = true;														//odblokowanie buzzera
-            timer_buffer = frame_b.sec;														//buforowanie czasu
-            frame_b.r_FSWstate = 6;
+            timer_buffer = RTC_d.time;														//buforowanie czasu
+            stan_d.flightState = 6;
             break;
         //-------case 6 after separation delay------
         case 6:
-            if(frame_b.sec > (timer_buffer + 10)) frame_b.r_FSWstate = 7;						//odczekanie po separacji
+            if(RTC_d.time > (timer_buffer + 10)) stan_d.flightState = 7;						//odczekanie po separacji
             break;
         //---------case 7 wait for landing----------
         case 7:
-            if((frame_b.LPS25H_altitude < 100) && (frame_b.LPS25H_velocity < 1) && (frame_b.LPS25H_velocity > -1)) frame_b.r_FSWstate = 8;
+            if((LPS25H_d.altitude < 100) && (LPS25H_d.velocity < 1) && (LPS25H_d.velocity > -1)) stan_d.flightState = 8;
             break;
         //---------case 8 END----------------
         case 8:
@@ -461,7 +459,6 @@ void Initialization(void) {
     MPU9150_WakeUp();
     //-------LPS25H Init------------
     LPS25H_config();
-	frame_b.max_altitude = 0;
     //-------LIS331HH Init---------
     LIS331HH_WakeUp();
     //-------LSM9DS0 Init----------
@@ -559,8 +556,148 @@ void WarmUpMemoryOperations() {
     else if(!(PORTE.IN & PIN1_bm)) InitMemoryRead();
 }
 
-void DetectInitOrientation(void){
+bool DetectInitOrientation(allData_t * allData){
 	//napisaæ funkcjê wykrywaj¹c¹ orientacjê na starcie
+	//----Local variable------------------------------------------------
+	volatile float accTotal = 0;
+	volatile float mean_accX = 0;
+	volatile float mean_accY = 0;
+	volatile float mean_accZ = 0;
+	volatile float abs_mean_accX = 0;
+	volatile float abs_mean_accY = 0;
+	volatile float abs_mean_accZ = 0;
+	
+	//----Attach local pointer to main data struct----------------------
+	float * accX = &(allData->SensorsData->accel_x);
+	float * accY = &(allData->SensorsData->accel_y);
+	float * accZ = &(allData->SensorsData->accel_z);
+	
+	//-------Update all sensors data and calculate mean from n sample----
+	for(uint8_t i=0;i<100;i++){
+		SensorUpdate(&allData_d);
+		SensorDataFusion(&allData_d);
+		mean_accX += *accX;
+		mean_accY += *accY;
+		mean_accZ += *accZ;
+	}
+	mean_accX /= 100.0;
+	mean_accY /= 100.0;
+	mean_accZ /= 100.0;
+	accTotal = VectorLength3D(*accX, *accY, *accZ);
+	abs_mean_accX = fabs(mean_accX);
+	abs_mean_accY = fabs(mean_accY);
+	abs_mean_accZ = fabs(mean_accZ);
+	
+	//-------Check for errors---------------------------------------------
+	if((abs(accTotal) < 0.9) || (abs(accTotal) > 1.1)) return 1;
+	
+	//-------Determine main orientation-----------------------------------
+	if((abs_mean_accX > abs_mean_accY) && (abs_mean_accX > abs_mean_accZ)) allData->boardOrient->config = 1;		//X axis = main
+	else if((abs_mean_accY > abs_mean_accX) && (abs_mean_accY > abs_mean_accZ)) allData->boardOrient->config = 2;	//Y axis = main
+	else allData->boardOrient->config = 3;																			//Z axis = main
+	
+	switch(allData->boardOrient->config){
+		case 1: if(mean_accX < 0.5) allData->boardOrient->invert = true; break;
+		case 2: if(mean_accY < 0.5) allData->boardOrient->invert = true; break;
+		case 3: if(mean_accZ < 0.5) allData->boardOrient->invert = true; break;
+	}
+	
+	//-------Calculate launchpad angle------------------------------------
+	MinAngleVector3D(abs_mean_accX, abs_mean_accY, abs_mean_accZ);
+	return 0;
+}
+
+void SensorDataFusion(allData_t * allData){
+	//fuzja danych z czujników - na pocz¹tek tylko akcelerometry
+	//--------Pointer to correct data------------------------------
+	float MPU9150_accel_x;
+	float MPU9150_accel_y;
+	float MPU9150_accel_z;
+	float MPU9150_gyro_x;
+	float MPU9150_gyro_y;
+	float MPU9150_gyro_z;
+	float LSM9DS0_accel_x;
+	float LSM9DS0_accel_y;
+	float LSM9DS0_accel_z;
+	float LSM9DS0_gyro_x;
+	float LSM9DS0_gyro_y;
+	float LSM9DS0_gyro_z;
+	float LIS331HH_accel_x;
+	float LIS331HH_accel_y;
+	float LIS331HH_accel_z;
+	
+	//--------Sensor data router------------------------------------
+	switch(allData->boardOrient->config){
+		case 1:	//-----X sensor = main axis
+		default:
+		MPU9150_accel_x = allData->MPU9150->accel_x;
+		MPU9150_accel_y = allData->MPU9150->accel_y;
+		MPU9150_accel_z = allData->MPU9150->accel_z;
+		MPU9150_gyro_x = allData->MPU9150->gyro_x;
+		MPU9150_gyro_y = allData->MPU9150->gyro_y;
+		MPU9150_gyro_z = allData->MPU9150->gyro_z;
+		LSM9DS0_accel_x = allData->LSM9DS0->accel_x;
+		LSM9DS0_accel_y = allData->LSM9DS0->accel_y;
+		LSM9DS0_accel_z = allData->LSM9DS0->accel_z;
+		LSM9DS0_gyro_x = allData->LSM9DS0->gyro_x;
+		LSM9DS0_gyro_y = allData->LSM9DS0->gyro_y;
+		LSM9DS0_gyro_z = allData->LSM9DS0->gyro_z;
+		LIS331HH_accel_x = allData->LIS331HH->accel_x;
+		LIS331HH_accel_y = allData->LIS331HH->accel_y;
+		LIS331HH_accel_z = allData->LIS331HH->accel_z;
+		break;
+		case 2: //-----Y sensor = main axis
+		MPU9150_accel_x = allData->MPU9150->accel_y;
+		MPU9150_accel_y = allData->MPU9150->accel_x;
+		MPU9150_accel_z = allData->MPU9150->accel_z;
+		MPU9150_gyro_x = allData->MPU9150->gyro_y;
+		MPU9150_gyro_y = allData->MPU9150->gyro_x;
+		MPU9150_gyro_z = allData->MPU9150->gyro_z;
+		LSM9DS0_accel_x = allData->LSM9DS0->accel_y;
+		LSM9DS0_accel_y = allData->LSM9DS0->accel_x;
+		LSM9DS0_accel_z = allData->LSM9DS0->accel_z;
+		LSM9DS0_gyro_x = allData->LSM9DS0->gyro_y;
+		LSM9DS0_gyro_y = allData->LSM9DS0->gyro_x;
+		LSM9DS0_gyro_z = allData->LSM9DS0->gyro_z;
+		LIS331HH_accel_x = allData->LIS331HH->accel_y;
+		LIS331HH_accel_y = allData->LIS331HH->accel_x;
+		LIS331HH_accel_z = allData->LIS331HH->accel_z;
+		break;
+		case 3: //-----Z sensor = main axis
+		MPU9150_accel_x = allData->MPU9150->accel_z;
+		MPU9150_accel_y = allData->MPU9150->accel_y;
+		MPU9150_accel_z = allData->MPU9150->accel_x;
+		MPU9150_gyro_x = allData->MPU9150->gyro_z;
+		MPU9150_gyro_y = allData->MPU9150->gyro_y;
+		MPU9150_gyro_z = allData->MPU9150->gyro_x;
+		LSM9DS0_accel_x = allData->LSM9DS0->accel_z;
+		LSM9DS0_accel_y = allData->LSM9DS0->accel_y;
+		LSM9DS0_accel_z = allData->LSM9DS0->accel_x;
+		LSM9DS0_gyro_x = allData->LSM9DS0->gyro_z;
+		LSM9DS0_gyro_y = allData->LSM9DS0->gyro_y;
+		LSM9DS0_gyro_z = allData->LSM9DS0->gyro_x;
+		LIS331HH_accel_x = allData->LIS331HH->accel_z;
+		LIS331HH_accel_y = allData->LIS331HH->accel_y;
+		LIS331HH_accel_z = allData->LIS331HH->accel_x;
+		break;
+	}
+	// Rotate vector if up side down
+	if(allData->boardOrient->invert){
+		MPU9150_accel_x = -MPU9150_accel_x;
+		MPU9150_gyro_x = -MPU9150_gyro_x;
+	}
+	//-----Sensor fusion---------------------------------------
+	// Tu bêd¹ dziaæ siê czary
+	// Tymczsowo zwyk³e przepisanie zmiennych
+	// Dodaæ odejmowanie grawitacji
+	allData->SensorsData->accel_x = MPU9150_accel_x;
+	allData->SensorsData->accel_y = MPU9150_accel_y;
+	allData->SensorsData->accel_z = MPU9150_accel_z;
+	allData->SensorsData->gyro_x = MPU9150_gyro_x;
+	allData->SensorsData->gyro_y = MPU9150_gyro_y;
+	allData->SensorsData->gyro_z = MPU9150_gyro_z;
+	allData->SensorsData->altitude = allData->LPS25H->altitude;
+	allData->SensorsData->ascentVelo = allData->LPS25H->velocity;
 }
 
 void CalibrationStart() {
@@ -576,6 +713,7 @@ int main(void) {
     stan_d.telemetry_trigger = STARTUP_tele;
     frame_d.terminate = false;
     Initialization();
+	DetectInitOrientation(&allData_d);	//detect orientation and angle
     sei();
     WarmUp();					//inicjalizacja BT i odmiganie startu
     WarmUpMemoryOperations();	//odczyt lub kasowanie pamiêci
@@ -588,11 +726,16 @@ int main(void) {
             //								Sensors update
             //============================================================================
             stan_d.new_data = false;	//DRY flag clear
-            SensorUpdate();
+            SensorUpdate(&allData_d);
+			SensorDataFusion(&allData_d);
             StateUpdate();
             //----------------Prepare frame---------
-            prepareFrame(&frame_b, &stan_d, &GPS_d);
-            if(stan_d.flash_trigger) SPI_WriteFrame(&SPIaddress, 400, &frame_b);
+            prepareFrame(&allData_d);
+            if(stan_d.flash_trigger){
+				SPI_WriteFrame(&SPIaddress, 400, &frame_b);
+				if(RTC_d.frameFlashCount < 999999UL) RTC_d.frameFlashCount++;
+				else RTC_d.frameFlashCount = 0;
+			}
             if(!(frame_d.mutex)) frame_d = frame_b;							//jeœli frame_d nie zablokowane -> przepisz z bufora
             LED_PORT.OUTTGL = LED1;
             //----------------Kalibracja------------

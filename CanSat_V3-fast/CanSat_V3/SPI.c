@@ -158,7 +158,7 @@ void SPI_AAI_Mode_Stop(void){
 }
 
 /*  Coœ do poprawy!!!!!!!!!!!!!!!!!!1
-void SPI_PagueWrite(uint16_t page, uint16_t page_length, struct frame_t * frame){
+void SPI_PagueWrite(uint16_t page, uint16_t page_length, frame_t * frame){
 	uint16_t i = 0;
 	SPI_AAI_Mode_Start();				//konfiguracja transmisji AAI
 	
@@ -191,7 +191,7 @@ void SPI_WriteFin(void){
 }
 
 /*
-void SPI_PageWrite(uint16_t page, uint16_t page_length, struct frame_t * frame){
+void SPI_PageWrite(uint16_t page, uint16_t page_length, frame_t * frame){
 	uint16_t i = 0;
 	while(i < page_length){
 		uint32_t adres = page*page_length+i;	//calculate start address
@@ -214,7 +214,7 @@ uint32_t SPI_FindEnd(void){
 	return n;
 }
 
-void SPI_WriteFrame(uint32_t * adres, uint16_t frame_length, struct frame_t * frame){
+void SPI_WriteFrame(uint32_t * adres, uint16_t frame_length, frame_t * frame){
 	uint32_t i = 0;
 	if((*adres) < 4194000){
 		PORTA_OUTSET = PIN2_bm;

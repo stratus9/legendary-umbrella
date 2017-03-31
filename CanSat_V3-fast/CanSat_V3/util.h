@@ -7,20 +7,21 @@
 
 #ifndef UTIL_H_
 #define UTIL_H_
+#define VectorLength3D(val1, val2, val3) sqrt(val1*val1 + val2*val2 + val3*val3)
+#define VectorLength2D(val1, val2) sqrt(val1*val1 + val2*val2)
+#define altitudeCalc(pressure, start_pressure) (1.0-pow(pressure/start_pressure, 0.1902632365))*43538.0
 
-void float2char(float number,char * tablica);
-bool purgeBuffer(struct ringBuffer_t * bufor);
-bool ringBuffer_addString(struct ringBuffer_t * bufor, char * text, uint16_t text_length);
-bool ringBuffer_addChar(struct ringBuffer_t * bufor, char value);
-void prepareFrame(struct frame_t *  frame, struct stan_t *  stan, struct GPS_t * gps);
-bool GPSdecode(struct ringBuffer_t * bufor, struct GPS_t * gps);
+void float2char(float, char *);
+bool purgeBuffer(ringBuffer_t * bufor);
+bool ringBuffer_addString(ringBuffer_t * bufor, char * text, uint16_t text_length);
+bool ringBuffer_addChar(ringBuffer_t * bufor, char value);
+void prepareFrame(allData_t *);
+bool GPSdecode(ringBuffer_t * bufor, GPS_t * gps);
 int NMEAchecksum(char *s);
-char ringBuffer_read(struct ringBuffer_t * bufor);
-void decodeNMEA(struct GPS_t * GPS, struct ringBuffer_t * GPSbuf);
-void decodeTime(struct GPS_t GPS);
-void altitudeCalc(struct BMP085_t * BMP085, struct frame_t * frame);
-void altitudeCalcLPS(struct LPS25H_t * LPS25H, struct frame_t * frame);
-void GPS2Frame(struct GPS_t * GPS, struct frame_t * frame);
-void GPSbuf_init(struct GPS_t * gps);
-void maxAcc(struct frame_t * dane);
+char ringBuffer_read(ringBuffer_t * bufor);
+void decodeNMEA(GPS_t * GPS, ringBuffer_t * GPSbuf);
+void decodeTime(GPS_t GPS);
+void GPS2Frame(GPS_t * GPS, frame_t * frame);
+void GPSbuf_init(GPS_t * gps);
+float MinAngleVector3D(float, float, float);
 #endif /* UTIL_H_ */

@@ -85,9 +85,12 @@ void USART_SendCache(void);
 uint8_t I2C_ReadEnd(bool koniec);
 void structInit(void);
 void Initialization(void);
+bool DetectInitOrientation(allData_t *);
+void SensorDataFusion(allData_t *);
 void UpdateFW(void);
-void TempUpdate(struct DS18B20_t * DS18B20, struct frame_t * frame);
+void TempUpdate(DS18B20_t *, frame_t *);
 void SensorCal(void);
-void BT_Start(struct frame_t * frame);
+void BT_Start(frame_t *);
+void SensorUpdate(allData_t *);
 void FLASHerase(void);
 #endif /* CANSAT_H_ */
