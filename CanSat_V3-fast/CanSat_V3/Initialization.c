@@ -194,7 +194,7 @@ void IO_Init(void){
 void I2C_Init(void){
 	SENSORS_I2C.MASTER.CTRLA = TWI_MASTER_RIEN_bm | TWI_MASTER_WIEN_bm;		//ustawienie priorytetu przerwania na Low i w?aczenie przerwania od odbioru
 	SENSORS_I2C.MASTER.CTRLB = TWI_MASTER_SMEN_bm;                             //uruchomienie Smart Mode
-	SENSORS_I2C.MASTER.BAUD = 48;                                             //BAUD = 48 -> f=300kHz    BAUD = 21 -> f=600kHz
+	SENSORS_I2C.MASTER.BAUD = 15;                                             //BAUD = 48 -> f=300kHz    BAUD = 21 -> f=600kHz
 	SENSORS_I2C.MASTER.CTRLA |= TWI_MASTER_ENABLE_bm;                          //w³¹czenie TWI
 	SENSORS_I2C.MASTER.STATUS = TWI_MASTER_BUSSTATE_IDLE_gc;                   //I2C wolne
 }

@@ -214,7 +214,7 @@ ISR(USARTD0_RXC_vect) {
 //----------------------Sensors update-------------------------------
 ISR(TCC0_OVF_vect) {
     allData_d.stan->new_data = true;
-    allData_d.RTC->time++;
+    allData_d.RTC->time += sampling_time;
 }
 
 //----------------------Buzzer---------------------------------------
@@ -229,15 +229,19 @@ ISR(TCD0_OVF_vect) {
             break;
 		//-----------3x beep------------
         case 1:
-            if(buzzer_d.count > 6) buzzer_d.mode = 0;	//wy³¹czenie po 3 sygna³ach
-            else if(buzzer_d.count <= 6) {
-                PORTF.OUTTGL = PIN6_bm;
-                buzzer_d.count++;
+            if(buzzer_d.count > 5) buzzer_d.mode = 0;	//wy³¹czenie po 3 sygna³ach
+            else if(buzzer_d.count <= 5) {
+                if(!(buzzer_d.i%3)){
+	                PORTF.OUTTGL = PIN6_bm;
+	                buzzer_d.count++;
+                }
+                buzzer_d.i++;
             }
             break;
         //-----------2Hz signal------------
         case 2:
-            PORTF.OUTTGL = PIN6_bm;
+			if(!(buzzer_d.i%5)) PORTF.OUTTGL = PIN6_bm;
+			buzzer_d.i++;
             break;
         //----------cont signal------------
         case 3:
@@ -250,10 +254,13 @@ ISR(TCD0_OVF_vect) {
 			break;
 		//----------2x beep-----------------
 		case 5:
-		if(buzzer_d.count > 4) buzzer_d.mode = 0;	//wy³¹czenie po 2 sygna³ach
-		else if(buzzer_d.count <= 4) {
-			PORTF.OUTTGL = PIN6_bm;
-			buzzer_d.count++;
+		if(buzzer_d.count > 3) buzzer_d.mode = 0;	//wy³¹czenie po 2 sygna³ach
+		else if(buzzer_d.count <= 3) {
+			if(!(buzzer_d.i%3)){
+				PORTF.OUTTGL = PIN6_bm;
+				buzzer_d.count++;
+			}
+			buzzer_d.i++;
 		}
 		break;
         }
@@ -449,14 +456,14 @@ void BT_Start(frame_t * frame) {
 void SensorUpdate(allData_t * allData) {
     //-----------------MPU9150--------------
     MPU9150_RawUpdate(allData->MPU9150);
-    MPU9150_Conv(allData->MPU9150);
+    MPU9150_Conv(allData->MPU9150);		//110us
     //-----------------LIS331HH-------------
     LIS331HH_Update(allData->LIS331HH);
-    LIS331HH_Calc(allData->LIS331HH);
+    LIS331HH_Calc(allData->LIS331HH);	//30us
     //-----------------LPS25H---------------
     LPS25H_update(allData->LPS25H);
-    LPS25H_calc(allData->LPS25H);
-    altitudeCalcLPS(allData->LPS25H);
+    LPS25H_calc(allData->LPS25H);		//25us
+    altitudeCalcLPS(allData->LPS25H);	//225us
     //-----------------LSM9DS0--------------
     LSM9DS0_Update(allData->LSM9DS0);
     //-----------------Read ADC-------------
@@ -466,9 +473,6 @@ void SensorUpdate(allData_t * allData) {
 	//do router lub funkcji i wywaliæ jak najwiêcej!
     //-----------------Additional-----------
     if(LPS25H_d.altitude > LPS25H_d.max_altitude) LPS25H_d.max_altitude = LPS25H_d.altitude;
-    
-    
-	
 }
 
 void StateUpdate(allData_t * allData) {
@@ -501,7 +505,7 @@ void StateUpdate(allData_t * allData) {
 			
 		//-------case 2 separation delay---------------------------------------
 		case 2:
-			if(RTC_d.time > (timer_buffer + 10)){
+			if(RTC_d.time > (timer_buffer + 1000)){
 				//StagesSeparation();
 				timer_buffer = RTC_d.time;
 				stan_d.flightState = 3;
@@ -510,7 +514,7 @@ void StateUpdate(allData_t * allData) {
 		
 		//-------case 3 SEI delay----------------------------------------------
 		case 3:
-			if(RTC_d.time > (timer_buffer + 20)){
+			if(RTC_d.time > (timer_buffer + 2000)){
 				//SecondEngineIgn();
 				stan_d.flightState = 4;
 			}
@@ -566,7 +570,7 @@ void Initialization(void) {
     GPS_Conf();			//wys³anie konfiguracji do GPS
     IO_Init();
     TimerCInit(sampling_time);	//sensor update
-    TimerDInit(250);			//buzzer handling
+    TimerDInit(50);				//buzzer handling
     TimerEInit(50);				//obs³uga IO
     TimerFInit(telemetry_time);	//frame send
     structInit();
@@ -816,6 +820,10 @@ void SensorDataFusion(allData_t * allData){
 	allData->SensorsData->ascentVelo = allData->LPS25H->velocity;
 }
 
+void OrientationUpdate(allData_t * allData){
+	
+}
+
 void CalibrationStart() {
     Calibration_d.counter = 0;
     Calibration_d.trigger = true;		//zdalna kalibracja czujników
@@ -834,6 +842,7 @@ int main(void) {
     WarmUp();					//inicjalizacja BT i odmiganie startu
     WarmUpMemoryOperations();	//odczyt lub kasowanie pamiêci
     CalibrationStart();			//autocalibration
+	stan_d.armed_trigger = true;
 	
     while(1) {
         _delay_us(1);
@@ -842,11 +851,12 @@ int main(void) {
             //								Sensors update
             //============================================================================
             stan_d.new_data = false;	//DRY flag clear
-            SensorUpdate(&allData_d);
-			SensorDataFusion(&allData_d);
-            StateUpdate(&allData_d);
+            SensorUpdate(&allData_d);		//2320us
+			SensorDataFusion(&allData_d);	//8us
+            StateUpdate(&allData_d);		//21us
+			
             //----------------Prepare frame---------
-            prepareFrame(&allData_d);
+            prepareFrame(&allData_d);	//333us
             if(stan_d.flash_trigger){
 				SPI_WriteFrame(&SPIaddress, 400, &frame_b);
 				if(RTC_d.frameFlashCount < 999999UL) RTC_d.frameFlashCount++;

@@ -14,7 +14,7 @@
 
 //===================Definicja parametrów pracy=================
 #define CPU_clock		32							//czêstotliwoœæ taktowania procesora
-#define sampling_rate	25.0						//czêstotliwoœæ próbkowania w Hz
+#define sampling_rate	200.0						//czêstotliwoœæ próbkowania w Hz
 #define sampling_time	1/sampling_rate*1000.0		//czas próbkowania w ms
 #define telemetry_rate	1							//czêstotliwoœæ telemetrii
 #define telemetry_time	1/telemetry_rate*1000.0		//czas telemetrii
@@ -90,6 +90,7 @@ void structInit(void);
 void Initialization(void);
 bool DetectInitOrientation(allData_t *);
 void SensorDataFusion(allData_t *);
+void OrientationUpdate(allData_t *);
 void UpdateFW(void);
 void TempUpdate(DS18B20_t *, frame_t *);
 void SensorCal(void);
