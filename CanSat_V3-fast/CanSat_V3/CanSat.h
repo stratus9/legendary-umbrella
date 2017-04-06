@@ -93,6 +93,7 @@ void SensorCal(void);
 void BT_Start(frame_t *);
 void SensorUpdate(allData_t *);
 void Buzzer2Beep(void);
+void Buzzer3Beep(void);
 void Buzzer2Hz(void);
 void BuzzerContBeep(void);
 void Buzzer1Beep(void);

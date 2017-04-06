@@ -226,8 +226,9 @@ ISR(TCD0_OVF_vect) {
             buzzer_d.i = 0;
             PORTF.OUTCLR = PIN6_bm;
             break;
+		//-----------3x beep------------
         case 1:
-            if(buzzer_d.count > 6) buzzer_d.mode = 0;	//wy³¹czenie po 2 sygna³ach
+            if(buzzer_d.count > 6) buzzer_d.mode = 0;	//wy³¹czenie po 3 sygna³ach
             else if(buzzer_d.count <= 6) {
                 PORTF.OUTTGL = PIN6_bm;
                 buzzer_d.count++;
@@ -246,6 +247,14 @@ ISR(TCD0_OVF_vect) {
 			PORTF.OUTSET = PIN6_bm;
 			buzzer_d.mode = 0;
 			break;
+		//----------2x beep-----------------
+		case 5:
+		if(buzzer_d.count > 4) buzzer_d.mode = 0;	//wy³¹czenie po 2 sygna³ach
+		else if(buzzer_d.count <= 4) {
+			PORTF.OUTTGL = PIN6_bm;
+			buzzer_d.count++;
+		}
+		break;
         }
     } else {
         buzzer_d.mode = 0;
@@ -273,7 +282,7 @@ ISR(TCF0_OVF_vect) {
 }
 
 //---------------------Buzzer functions-------------------------------
-void Buzzer2Beep(void){
+void Buzzer3Beep(void){
 	buzzer_d.mode = 1;
 	buzzer_d.trigger = true;
 }
@@ -290,6 +299,11 @@ void BuzzerContBeep(void){
 
 void Buzzer1Beep(void){
 	buzzer_d.mode = 4;
+	buzzer_d.trigger = true;
+}
+
+void Buzzer2Beep(void){
+	buzzer_d.mode = 5;
 	buzzer_d.trigger = true;
 }
 
@@ -419,8 +433,7 @@ void StateUpdate(void) {
         case 0:
             if((SensorData_d.accel_x > 3) && (LPS25H_d.velocity > 10)) stan_d.flightState = 1;	//wykrycie startu
 			if(SensorData_d.accel_x < 2) LPS25H_d.start_pressure = 0.9*LPS25H_d.start_pressure + 0.1*LPS25H_d.pressure;		//uaktualniaj ciœnienie na starcie
-			if(SensorData_d.accel_x > 2) 
-			buzzer_d.mode = 0;							//wy³¹czenie buzzera
+			if(SensorData_d.accel_x > 2) Buzzer1Beep();
 			LPS25H_d.max_altitude = LPS25H_d.altitude;	//uaktualniaj max wysokoœæ na starcie
             break;
 			
@@ -432,8 +445,7 @@ void StateUpdate(void) {
 			
         //-------case 2 delay + sound signal + deployment------------------
         case 2:
-            buzzer_d.mode = 1;																//3 sygna³y ci¹g³e
-            buzzer_d.trigger = true;														//odblokowanie buzzera
+            Buzzer3Beep();
             timer_buffer = RTC_d.time;														//buforowanie czasu
             stan_d.flightState = 3;
             break;
