@@ -204,7 +204,8 @@ typedef struct IO_s{
 	bool LED2;
 	bool LED3;
 } IO_t;
-	
+
+//--------------------------przechowywanie przetworzonych danych pomiarowych------
 typedef struct SensorsData_s{
 	float accel_x;		//rocket main axis
 	float accel_y;		//rocket second axis
@@ -212,6 +213,8 @@ typedef struct SensorsData_s{
 	float axisVelo;		//total velocity based on Acc or/and GPS
 	float ascentVelo;	//ascend velocity based on Press or/and GPS
 	float altitude;		//altitude from the ground
+	float altitude_acc;
+	float altitude_press;
 	float gyro_x;		//rotation rate in main axis
 	float gyro_y;		//rotation rate in second axis
 	float gyro_z;		//rotation rate in third axis

@@ -241,6 +241,11 @@ ISR(TCD0_OVF_vect) {
         case 3:
             PORTF.OUTSET = PIN6_bm;
             break;
+		//----------Short beep--------------
+		case 4:
+			PORTF.OUTSET = PIN6_bm;
+			buzzer_d.mode = 0;
+			break;
         }
     } else {
         buzzer_d.mode = 0;
@@ -255,7 +260,7 @@ ISR(TCE0_OVF_vect) {
     stan_d.cmd_mode = false;
 }
 
-//----------------------Frame send-------------------------------------
+//----------------------Frame send------------------------------------
 ISR(TCF0_OVF_vect) {
     LED_PORT.OUTTGL = LED4;
     frame_d.terminate = false;
@@ -266,6 +271,8 @@ ISR(TCF0_OVF_vect) {
         USARTD0_TXC_vect();
     }
 }
+
+//---------------------Buzzer functions-------------------------------
 
 //----------------------Memory erase---------------------------
 void FLASHerase(void) {
@@ -391,15 +398,19 @@ void StateUpdate(void) {
         switch(stan_d.flightState) {
         //--------case 0 preflight-----------------
         case 0:
-            if((SensorData_d.accel_x > 3) || (LPS25H_d.velocity > 10)) stan_d.flightState = 1;	//wykrycie startu
-            buzzer_d.mode = 0;
-			LPS25H_d.max_altitude = LPS25H_d.altitude;
+            if((SensorData_d.accel_x > 3) && (LPS25H_d.velocity > 10)) stan_d.flightState = 1;	//wykrycie startu
+			if(SensorData_d.accel_x < 2) LPS25H_d.start_pressure = 0.9*LPS25H_d.start_pressure + 0.1*LPS25H_d.pressure;		//uaktualniaj ciœnienie na starcie
+			if(SensorData_d.accel_x > 2) 
+			buzzer_d.mode = 0;							//wy³¹czenie buzzera
+			LPS25H_d.max_altitude = LPS25H_d.altitude;	//uaktualniaj max wysokoœæ na starcie
             break;
+			
         //--------case 1 flight wait for apogee----
         case 1:
 			stan_d.flash_trigger = true;
             if((LPS25H_d.max_altitude - LPS25H_d.altitude) > 10.0) stan_d.flightState = 2;	//wykrycie pu³apu
             break;
+			
         //-------case 2 delay + sound signal + deployment------------------
         case 2:
             buzzer_d.mode = 1;																//3 sygna³y ci¹g³e
@@ -407,14 +418,17 @@ void StateUpdate(void) {
             timer_buffer = RTC_d.time;														//buforowanie czasu
             stan_d.flightState = 3;
             break;
+			
         //--------case 3 parachute delay--------------
         case 3:
             if(RTC_d.time > (timer_buffer + 5)) stan_d.flightState = 4;						//odczekanie po separacji
             break;
+			
         //--------case 4 separation wait-----------
         case 4:
             if(((LPS25H_d.velocity) > 40) || (LPS25H_d.altitude < 250)) stan_d.flightState = 5;						//odczekanie do separacji
             break;
+			
         //-------case 5 separation------------------
         case 5:
             buzzer_d.mode = 1;																//3 sygna³y ci¹g³e
@@ -422,14 +436,17 @@ void StateUpdate(void) {
             timer_buffer = RTC_d.time;														//buforowanie czasu
             stan_d.flightState = 6;
             break;
+			
         //-------case 6 after separation delay------
         case 6:
             if(RTC_d.time > (timer_buffer + 10)) stan_d.flightState = 7;						//odczekanie po separacji
             break;
+			
         //---------case 7 wait for landing----------
         case 7:
             if((LPS25H_d.altitude < 100) && (LPS25H_d.velocity < 1) && (LPS25H_d.velocity > -1)) stan_d.flightState = 8;
             break;
+			
         //---------case 8 END----------------
         case 8:
             buzzer_d.mode = 2;																//sygna³ 2Hz
@@ -588,7 +605,7 @@ bool DetectInitOrientation(allData_t * allData){
 	abs_mean_accY = fabs(mean_accY);
 	abs_mean_accZ = fabs(mean_accZ);
 	
-	//-------Check for errors---------------------------------------------
+	//-------Check for errors---------------------------------------------	//mo¿e warto daæ powtórny pomiar?
 	if((abs(accTotal) < 0.9) || (abs(accTotal) > 1.1)) return 1;
 	
 	//-------Determine main orientation-----------------------------------
@@ -597,9 +614,9 @@ bool DetectInitOrientation(allData_t * allData){
 	else allData->boardOrient->config = 3;																			//Z axis = main
 	
 	switch(allData->boardOrient->config){
-		case 1: if(mean_accX < 0.5) allData->boardOrient->invert = true; break;
-		case 2: if(mean_accY < 0.5) allData->boardOrient->invert = true; break;
-		case 3: if(mean_accZ < 0.5) allData->boardOrient->invert = true; break;
+		case 1: if(mean_accX < 0.1) allData->boardOrient->invert = true; break;
+		case 2: if(mean_accY < 0.1) allData->boardOrient->invert = true; break;
+		case 3: if(mean_accZ < 0.1) allData->boardOrient->invert = true; break;
 	}
 	
 	//-------Calculate launchpad angle------------------------------------
