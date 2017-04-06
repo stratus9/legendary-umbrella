@@ -440,7 +440,7 @@ void StateUpdate(allData_t * allData) {
         switch(stan_d.flightState) {
         //--------case 0 preflight-------------------------------------------
         case 0:
-            if((SensorData_d.accel_x > 3) && (LPS25H_d.velocity > 10)){		//wykrycie startu
+            if((SensorData_d.accel_x > 3) && (LPS25H_d.velocity > 10)){		//wykrycie startu (Arecorder Acc+Alti) (Arecorder zapisuje kilkanaœcie próbek wstecz)
 				stan_d.flash_trigger = true;
 				if(dual_stage) stan_d.flightState = 1;	
 				else stan_d.flightState = 4;
@@ -452,7 +452,7 @@ void StateUpdate(allData_t * allData) {
 			
 		//-------case 1 wait for MECO-----------------------------------------
 		case 1:
-			if((SensorData_d.accel_x < 0) && (SensorData_d.altitude > 50) && (SensorData_d.ascentVelo > 50)){
+			if((SensorData_d.accel_x < 0) && (SensorData_d.altitude > 50) && (SensorData_d.ascentVelo > 50)){	//Arecorder filtruje przyspieszenie
 				timer_buffer = RTC_d.time;														//buforowanie czasu
 				stan_d.flightState = 2;
 			}
@@ -460,7 +460,7 @@ void StateUpdate(allData_t * allData) {
 			
 		//-------case 2 separation delay---------------------------------------
 		case 2:
-			if(RTC_d.time > (timer_buffer + 1)){
+			if(RTC_d.time > (timer_buffer + 10)){
 				//StagesSeparation();
 				timer_buffer = RTC_d.time;
 				stan_d.flightState = 3;
@@ -469,7 +469,7 @@ void StateUpdate(allData_t * allData) {
 		
 		//-------case 3 SEI delay----------------------------------------------
 		case 3:
-			if(RTC_d.time > (timer_buffer + 2)){
+			if(RTC_d.time > (timer_buffer + 20)){
 				//SecondEngineIgn();
 				stan_d.flightState = 4;
 			}
