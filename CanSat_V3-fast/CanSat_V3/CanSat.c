@@ -430,7 +430,7 @@ void SensorUpdate(allData_t * allData) {
 	
 }
 
-void StateUpdate(void) {
+void StateUpdate(allData_t * allData) {
     if(!(stan_d.armed_trigger)) {
         stan_d.flightState = 0;
         buzzer_d.mode = 0;
@@ -438,48 +438,76 @@ void StateUpdate(void) {
         PORTD_OUTCLR = PIN1_bm;
     } else {
         switch(stan_d.flightState) {
-        //--------case 0 preflight-----------------
+        //--------case 0 preflight-------------------------------------------
         case 0:
-            if((SensorData_d.accel_x > 3) && (LPS25H_d.velocity > 10)) stan_d.flightState = 1;	//wykrycie startu
+            if((SensorData_d.accel_x > 3) && (LPS25H_d.velocity > 10)){		//wykrycie startu
+				stan_d.flash_trigger = true;
+				if(dual_stage) stan_d.flightState = 1;	
+				else stan_d.flightState = 4;
+			}
 			if(SensorData_d.accel_x < 2) LPS25H_d.start_pressure = 0.9*LPS25H_d.start_pressure + 0.1*LPS25H_d.pressure;		//uaktualniaj ciœnienie na starcie
 			if(SensorData_d.accel_x > 2) Buzzer1Beep();
 			LPS25H_d.max_altitude = LPS25H_d.altitude;	//uaktualniaj max wysokoœæ na starcie
             break;
 			
-        //--------case 1 flight wait for apogee--------------------------
-        case 1:
-			stan_d.flash_trigger = true;
-            if(((LPS25H_d.max_altitude - LPS25H_d.altitude) > 10.0) && (LPS25H_d.velocity < 0)) stan_d.flightState = 2;	//wykrycie pu³apu
+		//-------case 1 wait for MECO-----------------------------------------
+		case 1:
+			if((SensorData_d.accel_x < 0) && (SensorData_d.altitude > 50) && (SensorData_d.ascentVelo > 50)){
+				timer_buffer = RTC_d.time;														//buforowanie czasu
+				stan_d.flightState = 2;
+			}
+			break;
+			
+		//-------case 2 separation delay---------------------------------------
+		case 2:
+			if(RTC_d.time > (timer_buffer + 1)){
+				//StagesSeparation();
+				timer_buffer = RTC_d.time;
+				stan_d.flightState = 3;
+			}
+			break;
+		
+		//-------case 3 SEI delay----------------------------------------------
+		case 3:
+			if(RTC_d.time > (timer_buffer + 2)){
+				//SecondEngineIgn();
+				stan_d.flightState = 4;
+			}
+			break;
+			
+        //--------case 4 flight wait for apogee--------------------------------
+        case 4:
+            if(((LPS25H_d.max_altitude - LPS25H_d.altitude) > 10.0) && (LPS25H_d.velocity < 0)) stan_d.flightState = 5;	//wykrycie pu³apu
             break;
 			
-        //-------case 2 sound signal + pilot parachute deployment------------------
-        case 2:
+        //-------case 5 sound signal + pilot parachute deployment------------------
+        case 5:
             Buzzer3Beep();				//3 sygna³y dŸwiêkowe
 			Parachute1deploy();			//wyrzucenie spadochronu nr 1
-            stan_d.flightState = 3;
+            stan_d.flightState = 6;
             break;
 			
-        //--------case 3 wait for main parachute target or pilot failure-----------
-        case 3:
-            if(allData_d->SensorsData->altitude < 400) stan_d.flightState = 4;						//warunek wysokoœci
-			//if(allData_d->SensorsData->accel_press < -1) stan_d.flightState = 4;					//warunek zwiêkszania prêdkoœci opadania
-			if(allData_d->SensorsData->ascentVelo < -30) stan_d.flightState = 4;					//warunek prêdkoœci
+        //--------case 6 wait for main parachute target or pilot failure-----------
+        case 6:
+            if(allData->SensorsData->altitude < 400) stan_d.flightState = 7;						//warunek wysokoœci
+			//if(allData_d->SensorsData->accel_press < -1) stan_d.flightState = 7;					//warunek zwiêkszania prêdkoœci opadania
+			if(allData->SensorsData->ascentVelo < -30) stan_d.flightState = 7;					//warunek prêdkoœci
             break;
 			
-        //--------case 4 main parachute deployment-----------
-        case 4:
+        //--------case 7 main parachute deployment-----------
+        case 7:
 			Parachute2deploy();							//wyrzucenie g³ównego spadochronu
 			Buzzer2Beep();								//2 sygna³y dŸwiêkowe
-            stan_d.flightState = 5;	
+            stan_d.flightState = 8;	
             break;
 			
-        //---------case 5 wait for landing----------
-        case 5:
-            if((LPS25H_d.altitude < 200) && (LPS25H_d.velocity < 1) && (LPS25H_d.velocity > -1)) stan_d.flightState = 6;
+        //---------case 9 wait for landing----------
+        case 8:
+            if((LPS25H_d.altitude < 200) && (LPS25H_d.velocity < 1) && (LPS25H_d.velocity > -1)) stan_d.flightState = 9;
             break;
 			
-        //---------case 8 END----------------
-        case 6:
+        //---------case 9 END----------------
+        case 9:
             Buzzer2Hz();
 			stan_d.flash_trigger = false;
             break;
@@ -775,7 +803,7 @@ int main(void) {
             stan_d.new_data = false;	//DRY flag clear
             SensorUpdate(&allData_d);
 			SensorDataFusion(&allData_d);
-            StateUpdate();
+            StateUpdate(&allData_d);
             //----------------Prepare frame---------
             prepareFrame(&allData_d);
             if(stan_d.flash_trigger){

@@ -9,6 +9,9 @@
 #ifndef CANSAT_H_
 #define CANSAT_H_
 
+//===================Rocket config==============================
+#define dual_stage false
+
 //===================Definicja parametrów pracy=================
 #define CPU_clock		32							//czêstotliwoœæ taktowania procesora
 #define sampling_rate	25.0						//czêstotliwoœæ próbkowania w Hz
@@ -92,6 +95,7 @@ void TempUpdate(DS18B20_t *, frame_t *);
 void SensorCal(void);
 void BT_Start(frame_t *);
 void SensorUpdate(allData_t *);
+void StateUpdate(allData_t *);
 void Buzzer2Beep(void);
 void Parachute1deploy();
 void Parachute2deploy();
