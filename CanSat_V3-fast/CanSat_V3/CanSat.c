@@ -273,6 +273,25 @@ ISR(TCF0_OVF_vect) {
 }
 
 //---------------------Buzzer functions-------------------------------
+void Buzzer2Beep(void){
+	buzzer_d.mode = 1;
+	buzzer_d.trigger = true;
+}
+
+void Buzzer2Hz(void){
+	buzzer_d.mode = 2;
+	buzzer_d.trigger = true;
+}
+
+void BuzzerContBeep(void){
+	buzzer_d.mode = 3;
+	buzzer_d.trigger = true;
+}
+
+void Buzzer1Beep(void){
+	buzzer_d.mode = 4;
+	buzzer_d.trigger = true;
+}
 
 //----------------------Memory erase---------------------------
 void FLASHerase(void) {
