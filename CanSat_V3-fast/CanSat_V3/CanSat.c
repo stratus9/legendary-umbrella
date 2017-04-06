@@ -307,6 +307,15 @@ void Buzzer2Beep(void){
 	buzzer_d.trigger = true;
 }
 
+//---------------------Parachutes functions---------------------
+void Parachute1deploy(){
+	
+}
+
+void Parachute2deploy(){
+	
+}
+
 //----------------------Memory erase---------------------------
 void FLASHerase(void) {
     const char buf0[] = "\n\rMemory erased!\n\r\n\r\0";
@@ -437,51 +446,41 @@ void StateUpdate(void) {
 			LPS25H_d.max_altitude = LPS25H_d.altitude;	//uaktualniaj max wysokoœæ na starcie
             break;
 			
-        //--------case 1 flight wait for apogee----
+        //--------case 1 flight wait for apogee--------------------------
         case 1:
 			stan_d.flash_trigger = true;
-            if((LPS25H_d.max_altitude - LPS25H_d.altitude) > 10.0) stan_d.flightState = 2;	//wykrycie pu³apu
+            if(((LPS25H_d.max_altitude - LPS25H_d.altitude) > 10.0) && (LPS25H_d.velocity < 0)) stan_d.flightState = 2;	//wykrycie pu³apu
             break;
 			
-        //-------case 2 delay + sound signal + deployment------------------
+        //-------case 2 sound signal + pilot parachute deployment------------------
         case 2:
-            Buzzer3Beep();
-            timer_buffer = RTC_d.time;														//buforowanie czasu
+            Buzzer3Beep();				//3 sygna³y dŸwiêkowe
+			Parachute1deploy();			//wyrzucenie spadochronu nr 1
             stan_d.flightState = 3;
             break;
 			
-        //--------case 3 parachute delay--------------
+        //--------case 3 wait for main parachute target or pilot failure-----------
         case 3:
-            if(RTC_d.time > (timer_buffer + 5)) stan_d.flightState = 4;						//odczekanie po separacji
+            if(allData_d->SensorsData->altitude < 400) stan_d.flightState = 4;						//warunek wysokoœci
+			//if(allData_d->SensorsData->accel_press < -1) stan_d.flightState = 4;					//warunek zwiêkszania prêdkoœci opadania
+			if(allData_d->SensorsData->ascentVelo < -30) stan_d.flightState = 4;					//warunek prêdkoœci
             break;
 			
-        //--------case 4 separation wait-----------
+        //--------case 4 main parachute deployment-----------
         case 4:
-            if(((LPS25H_d.velocity) > 40) || (LPS25H_d.altitude < 250)) stan_d.flightState = 5;						//odczekanie do separacji
+			Parachute2deploy();							//wyrzucenie g³ównego spadochronu
+			Buzzer2Beep();								//2 sygna³y dŸwiêkowe
+            stan_d.flightState = 5;	
             break;
 			
-        //-------case 5 separation------------------
+        //---------case 5 wait for landing----------
         case 5:
-            buzzer_d.mode = 1;																//3 sygna³y ci¹g³e
-            buzzer_d.trigger = true;														//odblokowanie buzzera
-            timer_buffer = RTC_d.time;														//buforowanie czasu
-            stan_d.flightState = 6;
-            break;
-			
-        //-------case 6 after separation delay------
-        case 6:
-            if(RTC_d.time > (timer_buffer + 10)) stan_d.flightState = 7;						//odczekanie po separacji
-            break;
-			
-        //---------case 7 wait for landing----------
-        case 7:
-            if((LPS25H_d.altitude < 100) && (LPS25H_d.velocity < 1) && (LPS25H_d.velocity > -1)) stan_d.flightState = 8;
+            if((LPS25H_d.altitude < 200) && (LPS25H_d.velocity < 1) && (LPS25H_d.velocity > -1)) stan_d.flightState = 6;
             break;
 			
         //---------case 8 END----------------
-        case 8:
-            buzzer_d.mode = 2;																//sygna³ 2Hz
-            buzzer_d.trigger = true;														//odblokowanie buzzera
+        case 6:
+            Buzzer2Hz();
 			stan_d.flash_trigger = false;
             break;
         }
