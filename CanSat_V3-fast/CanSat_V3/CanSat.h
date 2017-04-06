@@ -104,4 +104,5 @@ void Buzzer2Hz(void);
 void BuzzerContBeep(void);
 void Buzzer1Beep(void);
 void FLASHerase(void);
+void FLASH_saveData(allData_t *);
 #endif /* CANSAT_H_ */

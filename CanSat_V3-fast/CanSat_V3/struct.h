@@ -344,6 +344,75 @@ typedef struct RTC_s{
 	uint32_t frameFlashCount;
 } RTC_t;
 		
+typedef union {
+	uint8_t array[256];
+	struct{
+		uint8_t marker;
+		uint32_t Clock;
+		uint8_t FlightState;
+		
+		//Raw sensors
+		float MPU9150_accel_x;
+		float MPU9150_accel_y;
+		float MPU9150_accel_z;
+		float MPU9150_gyro_x;
+		float MPU9150_gyro_y;
+		float MPU9150_gyro_z;
+		float LSM9DS0_accel_x;
+		float LSM9DS0_accel_y;
+		float LSM9DS0_accel_z;
+		float LSM9DS0_gyro_x;
+		float LSM9DS0_gyro_y;
+		float LSM9DS0_gyro_z;
+		float LSM9DS0_mag_x;
+		float LSM9DS0_mag_y;
+		float LSM9DS0_mag_z;
+		float LIS331HH_accel_x;
+		float LIS331HH_accel_y;
+		float LIS331HH_accel_z;
+		float LPS25H_press;
+		
+		float Vbat;
+		float Vext;
+		float AnalogIn1;
+		float AnalogIn2;
+		float AnalogIn3;
+		float Vcc;
+		
+		//Sensors fusion
+		int8_t board_orient;
+		float accel_x;		//rocket main axis
+		float accel_y;		//rocket second axis
+		float accel_z;		//rocket third axis
+		float axisVelo;		//total velocity based on Acc or/and GPS
+		float ascentVelo;	//ascend velocity based on Press or/and GPS
+		float altitude;		//altitude from the ground
+		float altitude_acc;	
+		float altitude_press;
+		float gyro_x;		//rotation rate in main axis
+		float gyro_y;		//rotation rate in second axis
+		float gyro_z;		//rotation rate in third axis
+		float batVoltage;
+		float inTemp;		//on-board highest mean temperature or overheated element temperature
+		float outTemp;		//external temperature sensor data
+		
+		//GPS
+		char gps_latitude[13];
+		char gps_longitude[13];
+		char gps_altitude[10];
+		char gps_fix;
+	};
+} FLASH_dataStruct_t;
+
+typedef struct{
+	uint16_t pageNo;
+	uint8_t position;
+	union{
+		FLASH_dataStruct_t FLASH_dataStruct[2];
+		uint8_t data[512];
+	};
+}FLASH_pageStruct_t;
+
 typedef struct allData_s{
 	MPU9150_t * MPU9150;
 	LSM9DS0_t * LSM9DS0;
@@ -357,6 +426,8 @@ typedef struct allData_s{
 	frame_t * frame_b;
 	boardOrient_t * boardOrient;
 	RTC_t * RTC;
+	FLASH_pageStruct_t * FLASH_pageStruct;
 } allData_t;
+
 
 #endif /* STRUCT_H_ */

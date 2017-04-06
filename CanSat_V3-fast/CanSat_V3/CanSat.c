@@ -56,6 +56,7 @@ static LPS25H_t LPS25H_d;
 static LIS331HH_t LIS331HH_d;
 static Calibration_t Calibration_d;
 static buzzer_t buzzer_d;
+static FLASH_pageStruct_t FLASH_pageStruct_d;	//strukutra magazynuj¹ce dane dla Flash
 static uint32_t SPIaddress = 0;
 static float timer_buffer = 0;
 uint32_t mission_time = 0;
@@ -333,6 +334,45 @@ void FLASHerase(void) {
     SPIaddress = 0;
 }
 
+void FLASH_saveData(allData_t * allData_d){
+	FLASH_dataStruct_t FLASH_struct_d;
+	FLASH_struct_d.marker = 0xAA;
+	/*
+	FLASH_struct_d.IGN = allData_d->stan->IGN;
+	FLASH_struct_d.MFV = allData_d->stan->MFV;
+	FLASH_struct_d.MOV = allData_d->stan->MOV;
+	FLASH_struct_d.WPV = allData_d->stan->MPV;
+	FLASH_struct_d.FPV = allData_d->stan->FPV;
+	
+	FLASH_struct_d.press1 = allData_d->AD7195->raw_press1;
+	FLASH_struct_d.press2 = allData_d->AD7195->raw_press2;
+	FLASH_struct_d.press3 = allData_d->AD7195->raw_press3;
+	FLASH_struct_d.press4 = allData_d->AD7195->raw_press4;
+	FLASH_struct_d.press5 = allData_d->AD7195->raw_press5;
+	FLASH_struct_d.press6 = allData_d->AD7195->raw_press6;
+	FLASH_struct_d.press7 = allData_d->AD7195->raw_press7;
+	FLASH_struct_d.press8 = allData_d->AD7195->raw_press8;
+	
+	FLASH_struct_d.temp1 = allData_d->Analog->Temp1;
+	FLASH_struct_d.temp2 = allData_d->Analog->Temp2;
+	FLASH_struct_d.temp3 = allData_d->Analog->Temp3;
+	FLASH_struct_d.temp4 = allData_d->Analog->Temp4;
+	
+	FLASH_struct_d.Clock = allData_d->Clock->RealTime;
+	
+	uint8_t pagePosition = allData_d->FLASH_pageStruct->position;
+	if (pagePosition < 8){
+		allData_d->FLASH_pageStruct->FLASH_dataStruct[pagePosition] = FLASH_struct_d;
+		allData_d->FLASH_pageStruct->position++;
+	}
+	if(pagePosition >=8){
+		FLASH_pageWrite(allData_d->FLASH_pageStruct->pageNo, allData_d->FLASH_pageStruct->data, 512);
+		allData_d->FLASH_pageStruct->pageNo++;
+		allData_d->FLASH_pageStruct->position = 0;
+	}
+	*/
+}
+
 //----------------------Kalibracja wsystkich czujników-----------------
 void SensorCal(void) {
     if(Calibration_d.counter < 1) {
@@ -388,6 +428,7 @@ void structInit(void) {
 	allData_d.frame_b = &frame_b;
 	allData_d.boardOrient = &boardOrient_d;
 	allData_d.RTC = &RTC_d;
+	allData_d.FLASH_pageStruct = &FLASH_pageStruct_d;
 }
 
 void BT_Start(frame_t * frame) {
