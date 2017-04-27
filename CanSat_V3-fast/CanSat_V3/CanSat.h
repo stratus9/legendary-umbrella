@@ -89,6 +89,7 @@ uint8_t I2C_ReadEnd(bool koniec);
 void structInit(void);
 void Initialization(void);
 bool DetectInitOrientation(allData_t *);
+bool DetectInitOrientationCont(allData_t *);
 void SensorDataFusion(allData_t *);
 void OrientationUpdate(allData_t *);
 void UpdateFW(void);

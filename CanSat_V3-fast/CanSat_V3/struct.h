@@ -333,9 +333,12 @@ typedef struct buzzer_s{
 } buzzer_t;
 
 typedef struct boardOrient_s{
-	
 	uint8_t config;		//0-error, 1-Xaxis, 2-Yaxis, 3-Zaxis
 	bool invert;
+	float AccelX;
+	float AccelY;
+	float AccelZ;
+	float angle;
 } boardOrient_t;
 
 typedef struct RTC_s{

@@ -159,10 +159,9 @@ ISR(USARTF0_RXC_vect) {
 //----------------------Send to Xbee--------------------------------
 ISR(USARTD0_TXC_vect) {
     if((frame_d.frameASCII[frame_d.iUART]) && (frame_d.frameASCII[frame_d.iUART] != '#')) {
-        frame_d.mutex = true;
         if(frame_d.frameASCII[frame_d.iUART] == '%') XBEE_UART.DATA = '\n';
         else XBEE_UART.DATA = frame_d.frameASCII[frame_d.iUART];
-        if(frame_d.iUART < 151) frame_d.iUART++;
+        if(frame_d.iUART < 200) frame_d.iUART++;
         else frame_d.frameASCII[frame_d.iUART] = 0;
     } else frame_d.mutex = false;
 }
@@ -284,8 +283,11 @@ ISR(TCF0_OVF_vect) {
     if(stan_d.telemetry_trigger) {
         if(RTC_d.frameTeleCount< 99999) RTC_d.frameTeleCount++;
         else RTC_d.frameTeleCount = 0;
+		//----- Begin transmission -----
         frame_b.iUART = 0;
-        USARTD0_TXC_vect();
+		frame_d.mutex = true;
+		XBEE_UART.DATA = '$';	// alternatywnie 0 lub '\r'
+        //USARTD0_TXC_vect();
     }
 }
 
@@ -490,7 +492,10 @@ void StateUpdate(allData_t * allData) {
 				if(dual_stage) stan_d.flightState = 1;	
 				else stan_d.flightState = 4;
 			}
-			if(SensorData_d.accel_x < 2) LPS25H_d.start_pressure = 0.9*LPS25H_d.start_pressure + 0.1*LPS25H_d.pressure;		//uaktualniaj ciœnienie na starcie
+			if(SensorData_d.accel_x < 2) {
+				LPS25H_d.start_pressure = 0.9*LPS25H_d.start_pressure + 0.1*LPS25H_d.pressure;		//uaktualniaj ciœnienie na starcie
+				DetectInitOrientationCont(&allData_d);	//detect orientation and angle
+			}
 			if(SensorData_d.accel_x > 2) Buzzer1Beep();
 			LPS25H_d.max_altitude = LPS25H_d.altitude;	//uaktualniaj max wysokoœæ na starcie
             break;
@@ -724,6 +729,52 @@ bool DetectInitOrientation(allData_t * allData){
 	
 	//-------Calculate launchpad angle------------------------------------
 	MinAngleVector3D(abs_mean_accX, abs_mean_accY, abs_mean_accZ);
+	return 0;
+}
+
+bool DetectInitOrientationCont(allData_t * allData){
+	//napisaæ funkcjê wykrywaj¹c¹ orientacjê na starcie
+	//----Local variable------------------------------------------------
+	volatile float accTotal = 0;
+	volatile float abs_mean_accX = 0;
+	volatile float abs_mean_accY = 0;
+	volatile float abs_mean_accZ = 0;
+	
+	//----Attach local pointer to main data struct----------------------
+	float * accX = &(allData->SensorsData->accel_x);
+	float * accY = &(allData->SensorsData->accel_y);
+	float * accZ = &(allData->SensorsData->accel_z);
+	
+	float * mean_accX = &(allData->boardOrient->AccelX);
+	float * mean_accY = &(allData->boardOrient->AccelY);
+	float * mean_accZ = &(allData->boardOrient->AccelZ);
+	
+	//------- Exp filter ------------------------------
+	*mean_accX = 0.9*(*mean_accX) + 0.1*(*accX);
+	*mean_accY = 0.9*(*mean_accY) + 0.1*(*accY);
+	*mean_accZ = 0.9*(*mean_accZ) + 0.1*(*accZ);
+	
+	accTotal = VectorLength3D(*accX, *accY, *accZ);
+	abs_mean_accX = fabs((*mean_accX));
+	abs_mean_accY = fabs((*mean_accY));
+	abs_mean_accZ = fabs((*mean_accZ));
+	
+	//-------Check for errors---------------------------------------------
+	if((abs(accTotal) < 0.9) || (abs(accTotal) > 1.1)) return 1;
+	
+	//-------Determine main orientation-----------------------------------
+	if((abs_mean_accX > abs_mean_accY) && (abs_mean_accX > abs_mean_accZ)) allData->boardOrient->config = 1;		//X axis = main
+	else if((abs_mean_accY > abs_mean_accX) && (abs_mean_accY > abs_mean_accZ)) allData->boardOrient->config = 2;	//Y axis = main
+	else allData->boardOrient->config = 3;																			//Z axis = main
+	
+	switch(allData->boardOrient->config){
+		case 1: if((*mean_accX) < 0.1) allData->boardOrient->invert = true; break;
+		case 2: if((*mean_accY) < 0.1) allData->boardOrient->invert = true; break;
+		case 3: if((*mean_accZ) < 0.1) allData->boardOrient->invert = true; break;
+	}
+	
+	//-------Calculate launchpad angle------------------------------------
+	allData->boardOrient->angle = MinAngleVector3D(abs_mean_accX, abs_mean_accY, abs_mean_accZ);
 	return 0;
 }
 
