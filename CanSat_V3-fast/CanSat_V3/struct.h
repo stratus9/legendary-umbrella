@@ -432,5 +432,17 @@ typedef struct allData_s{
 	FLASH_pageStruct_t * FLASH_pageStruct;
 } allData_t;
 
+typedef struct Inertial_s{
+	float accelX;
+	float accelY;
+	float accelZ;
+	float velocityX;
+	float velocityY;
+	float velocityZ;
+	float positionX;
+	float positionY;
+	float positionZ;
+}Inertial_t;
+
 
 #endif /* STRUCT_H_ */

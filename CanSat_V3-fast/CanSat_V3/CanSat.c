@@ -41,6 +41,7 @@
 //-----------------------------------Struktury globalne---------------------------------------------
 static SensorsData_t SensorData_d;
 static SensorsData_t SensorData_b;
+static Inertial_t Inertial_d;
 static allData_t allData_d;
 static boardOrient_t boardOrient_d;
 static RTC_t RTC_d;
@@ -869,6 +870,30 @@ void SensorDataFusion(allData_t * allData){
 	allData->SensorsData->gyro_z = MPU9150_gyro_z;
 	allData->SensorsData->altitude = allData->LPS25H->altitude;
 	allData->SensorsData->ascentVelo = allData->LPS25H->velocity;
+	
+	//------ Orientation update -------------------------------
+	OrientationUpdate(allData);
+	
+	//------ Real Accelerations calc --------------------------
+	AccelerationCorrection(allData);
+	
+	//------ Velocity calc ------------------------------------
+	VelocityUpdate(allData);
+	
+	//------ Position update ----------------------------------
+	PositionUpdate(allData);
+}
+
+void PositionUpdate(allData_t * allData){
+	
+}
+
+void AccelerationCorrection(allData_t * allData){
+	
+}
+
+void VelocityUpdate(allData_t * allData){
+	
 }
 
 void OrientationUpdate(allData_t * allData){
