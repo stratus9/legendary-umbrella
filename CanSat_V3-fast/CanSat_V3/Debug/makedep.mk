@@ -8,6 +8,8 @@ CanSat.c
 
 I2C.c
 
+orientation.c
+
 SPI.c
 
 Initialization.c

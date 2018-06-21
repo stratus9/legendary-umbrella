@@ -23,7 +23,7 @@ CanSat.d CanSat.o: .././CanSat.c \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\util\atomic.h \
  .././Initialization.h .././struct.h .././CanSat.h .././MPU9150.h \
  .././util.h .././LPS25H.h .././LIS331HH.h .././LSM9DS0.h .././SPI.h \
- .././ADC.h .././I2C.h
+ .././ADC.h .././I2C.h .././orientation.h
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\io.h:
 
@@ -90,3 +90,5 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\
 .././ADC.h:
 
 .././I2C.h:
+
+.././orientation.h:

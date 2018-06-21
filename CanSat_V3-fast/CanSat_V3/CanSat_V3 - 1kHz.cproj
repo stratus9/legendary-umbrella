@@ -174,6 +174,12 @@
     <Compile Include="I2C.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="orientation.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="orientation.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="SPI.c">
       <SubType>compile</SubType>
     </Compile>

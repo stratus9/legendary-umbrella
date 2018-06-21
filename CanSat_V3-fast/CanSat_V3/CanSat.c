@@ -25,6 +25,7 @@
 #include "SPI.h"
 #include "ADC.h"
 #include "I2C.h"
+#include "orientation.h"
 
 //--------TO DO!!!!-----------
 //	+ Transfer do UART Xbee przez DMA
@@ -61,6 +62,8 @@ static uint32_t SPIaddress = 0;
 static float timer_buffer = 0;
 uint32_t mission_time = 0;
 uint32_t frame_count = 0;
+
+static orientation_t orientation_d;
 
 
 //----------------------Bad ISR handling------------------------
@@ -677,7 +680,8 @@ void VelocityUpdate(allData_t * allData){
 }
 
 void OrientationUpdate(allData_t * allData){
-	
+	Orientation_CalcOrientation(&SensorData_d, &orientation_d, PREFLIGHT);
+	Orientation_CalcKinematics(&Inertial_d, 1.0/sampling_rate, &orientation_d, &SensorData_d);
 }
 
 void Kinematics(allData_t* allData){

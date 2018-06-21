@@ -40,6 +40,7 @@ C_SRCS +=  \
 ../ADC.c \
 ../CanSat.c \
 ../I2C.c \
+../orientation.c \
 ../SPI.c \
 ../Initialization.c \
 ../LIS331HH.c \
@@ -59,6 +60,7 @@ OBJS +=  \
 ADC.o \
 CanSat.o \
 I2C.o \
+orientation.o \
 SPI.o \
 Initialization.o \
 LIS331HH.o \
@@ -71,6 +73,7 @@ OBJS_AS_ARGS +=  \
 ADC.o \
 CanSat.o \
 I2C.o \
+orientation.o \
 SPI.o \
 Initialization.o \
 LIS331HH.o \
@@ -83,6 +86,7 @@ C_DEPS +=  \
 ADC.d \
 CanSat.d \
 I2C.d \
+orientation.d \
 SPI.d \
 Initialization.d \
 LIS331HH.d \
@@ -95,6 +99,7 @@ C_DEPS_AS_ARGS +=  \
 ADC.d \
 CanSat.d \
 I2C.d \
+orientation.d \
 SPI.d \
 Initialization.d \
 LIS331HH.d \
@@ -132,6 +137,13 @@ LINKER_SCRIPT_DEP+=
 	
 
 ./I2C.o: .././I2C.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG -DF_CPU=32000000  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\XMEGAA_DFP\1.0.36\include"  -O3 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atxmega256a3bu -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\XMEGAA_DFP\1.0.36\gcc\dev\atxmega256a3bu" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+./orientation.o: .././orientation.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG -DF_CPU=32000000  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\XMEGAA_DFP\1.0.36\include"  -O3 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atxmega256a3bu -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\XMEGAA_DFP\1.0.36\gcc\dev\atxmega256a3bu" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

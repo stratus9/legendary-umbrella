@@ -14,6 +14,64 @@
 
 #define CHAR uint8_t
 
+typedef union {
+	struct{
+		float w;
+		float x;
+		float y;
+		float z;
+	};
+	struct{
+		float q0;
+		float q1;
+		float q2;
+		float q3;
+	};
+} quaternion_t;
+
+typedef struct {
+	float ww;
+	float wx;
+	float wy;
+	float wz;
+	float xx;
+	float xy;
+	float xz;
+	float yy;
+	float yz;
+	float zz;
+} quaternionProd_t;
+
+typedef struct {
+	float roll;
+	float pitch;
+	float yaw;
+} EulerAngle_t;
+
+typedef union {
+	float v[3];
+	struct {
+		float x;
+		float y;
+		float z;
+	};
+} vector_t;
+
+typedef union {
+	int32_t v[3];
+	struct {
+		int32_t x;
+		int32_t y;
+		int32_t z;
+	};
+} vectorInt32_t;
+
+typedef struct {
+	quaternion_t quaternion;
+	float rMat[3][3];
+	EulerAngle_t euler;
+} orientation_t;
+
 //--------------------------struktura obs³ugi czujnika BMP085---------------------------------
 typedef struct BMP085_s{
 	bool data_ready;
@@ -220,6 +278,9 @@ typedef struct SensorsData_s{
 	float gyro_x;		//rotation rate in main axis
 	float gyro_y;		//rotation rate in second axis
 	float gyro_z;		//rotation rate in third axis
+	float mag_x;
+	float mag_y;
+	float mag_z;
 	float batVoltage;
 	float inTemp;		//on-board highest mean temperature or overheated element temperature
 	float outTemp;		//external temperature sensor data
@@ -424,9 +485,9 @@ typedef struct {
 }FLASH_pageStruct_t;
 
 typedef struct {
-	float accelX;
-	float accelY;
-	float accelZ;
+	float accelX_ng;
+	float accelY_ng;
+	float accelZ_ng;
 	float velocityX;
 	float velocityY;
 	float velocityZ;
@@ -452,7 +513,43 @@ typedef struct {
 	Inertial_t * Inertial;
 } allData_t;
 
+typedef enum {
+	STARTUP,
+	INTERNAL_CHECK,
+	CALIBRATION,
+	PREFLIGHT,
+	PREPARATION_ERROR,
 
+	ME_STARTUP,
+	ME_ACCELERATING,
+	ME_ERROR,
+	MECO,
+	MECO_ERROR,
+
+	FREEFLIGH,
+
+	SE_STARTUP,
+	SE_ACCELRATING,
+	SE_ERROR,
+	SECO,
+	SECO_ERROR,
+
+	FREEFLIGHT2,
+	APOGEE,
+	FREEFALL,
+
+	DRAGSHUTE_DEPLOY,
+	DRAGSHUTE_FALL,
+	DRAGSHUTE_ERROR,
+
+	MAINSHUTE_DEPLOY,
+	MAINSHUTE_FALL,
+	MAINSHUTE_ERROR,
+
+	LANDING,
+
+	ABORT
+} flightState_t;
  
 
 #endif /* STRUCT_H_ */
