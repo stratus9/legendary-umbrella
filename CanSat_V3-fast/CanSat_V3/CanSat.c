@@ -27,15 +27,13 @@
 #include "I2C.h"
 
 //--------TO DO!!!!-----------
-//	+GPS
-//	+I2C
-//	+LED
-//	-RTC -zmieniono na timer F
-//	-DRY
-//	-IO
-//	+Buzzer
-//	-separacja
-
+//	+ Transfer do UART Xbee przez DMA
+//	- Zaimplementowaæ wyznaczanie orientacji
+//	- Zmieniæ obs³ugê Flash z SPI na UART SPI
+//	- Zapis w formacie binarnym
+//	- wywaliæ router pomiarów
+//	- dodaæ nowy algorytm wyznaczania orientacji
+//	- dodaæ wyznaczanie k¹t¹ odhcylenia od pionu
 
 
 //-----------------------------------Struktury globalne---------------------------------------------
@@ -80,7 +78,7 @@ ISR(RTC_OVF_vect){
 ISR(USARTF0_RXC_vect) {
     uint8_t i = 0;
     asm volatile("nop");
-    volatile char tmp = GPS_UART.DATA;
+    volatile CHAR tmp = GPS_UART.DATA;
     if(tmp == '$') {
         GPS_b.frame_start = true;
         GPSbuf_init(&GPS_b);
@@ -157,20 +155,10 @@ ISR(USARTF0_RXC_vect) {
     }
 }
 
-//----------------------Send to Xbee--------------------------------
-ISR(USARTD0_TXC_vect) {
-    if(frame_d.frameASCII[frame_d.iUART]) {
-		frame_d.mutex = true;
-        XBEE_UART.DATA = frame_d.frameASCII[frame_d.iUART];
-        if(frame_d.iUART < 200) frame_d.iUART++;
-        else frame_d.frameASCII[frame_d.iUART] = 0;
-    } else frame_d.mutex = false;
-}
-
 //----------------------Receive from Xbee----------------------------
 ISR(USARTD0_RXC_vect) {
     LED_PORT.OUTSET = LED3;
-    char volatile tmp = XBEE_UART.DATA;
+    CHAR volatile tmp = XBEE_UART.DATA;
     if(tmp == '$') stan_d.cmd_mode = true;	//enter command mode
     else if((tmp == 'R') && stan_d.cmd_mode) {
         ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
@@ -280,14 +268,12 @@ ISR(TCE0_OVF_vect) {
 //----------------------Frame send------------------------------------
 ISR(TCF0_OVF_vect) {
     LED_PORT.OUTTGL = LED4;
-    frame_d.terminate = false;
+	
     if(stan_d.telemetry_trigger) {
         if(RTC_d.frameTeleCount< 99999) RTC_d.frameTeleCount++;
         else RTC_d.frameTeleCount = 0;
-		//----- Begin transmission -----
-        frame_d.iUART = 0;
-		//XBEE_UART.DATA = '$';	// alternatywnie 0 lub '\r'
-        USARTD0_TXC_vect();
+		//----- Begin transmission ----
+		if(UART_Xbee_DMA_transfer_nonblocking_ready()) UART_Xbee_DMA_transfer_nonblocking_start(frame_d.frameASCII, frame_d.length);
     }
 }
 
@@ -328,7 +314,7 @@ void Parachute2deploy(){
 
 //----------------------Memory erase---------------------------
 void FLASHerase(void) {
-    const char buf0[] = "\n\rMemory erased!\n\r\n\r\0";
+    const CHAR buf0[] = "\n\rMemory erased!\n\r\n\r\0";
     while((!(PORTE.IN & PIN0_bm)) || (!(PORTE.IN & PIN1_bm))) {}
     buzzer_d.mode = 3;																//sygna³ 2Hz
     buzzer_d.trigger = true;														//odblokowanie buzzera
@@ -441,22 +427,9 @@ void structInit(void) {
 }
 
 void BT_Start(frame_t * frame) {
-    int i = 0;
-    frame->frameASCII[i++] = '\r';	//\r\n+INQ=1\r\n
-    frame->frameASCII[i++] = '\n';
-    frame->frameASCII[i++] = '+';
-    frame->frameASCII[i++] = 'I';
-    frame->frameASCII[i++] = 'N';
-    frame->frameASCII[i++] = 'Q';
-    frame->frameASCII[i++] = '=';
-    frame->frameASCII[i++] = '1';
-    frame->frameASCII[i++] = '\r';
-    frame->frameASCII[i++] = '\n';
-	frame->frameASCII[i++] = 0;
-	frame->frameASCII[i++] = 0;
-    frame->iUART = 0;
-	
-	USARTD0_TXC_vect();
+	sprintf((char*)frame->frameASCII, "\r\n+INQ=1\r\n");
+	UART_Xbee_DMA_transfer_blocking_start(frame->frameASCII, 10);
+		
 	_delay_ms(100);
 }
 
@@ -585,6 +558,8 @@ void Initialization(void) {
     TimerFInit(telemetry_time);	//frame send
     structInit();
     I2C_Init();
+	DMA_init();
+	
     //--------MPU9150 Init-----------
     MPU9150_WakeUp();
     //-------LPS25H Init------------
@@ -604,7 +579,7 @@ void Initialization(void) {
 
 void InitMemoryErase() {
     uint32_t i = 0;
-    const char buf0[] = "\n\rMemory erased!\n\r\n\r\0";
+    const CHAR buf0[] = "\n\rMemory erased!\n\r\n\r\0";
     while((!(PORTE.IN & PIN0_bm)) || (!(PORTE.IN & PIN1_bm))) {}
     buzzer_d.mode = 3;																//sygna³ 2Hz
     buzzer_d.trigger = true;														//odblokowanie buzzera
@@ -620,6 +595,7 @@ void InitMemoryErase() {
 }
 
 void InitMemoryRead() {
+	while(!(PORTE.IN & PIN0_bm)) {}
     uint32_t i = 0;
     stan_d.flash_trigger = false;
     buzzer_d.mode = 3;																//sygna³ 2Hz
@@ -627,14 +603,13 @@ void InitMemoryRead() {
     _delay_ms(200);
     buzzer_d.trigger = false;
     while(!(PORTE.IN & PIN1_bm)) {}
-    const char buf1[] = "\n\rID,TimeMS,FlightState,Bat,Altitude,Velocity,AccelX,AccelY,AccelZ,GyroX,GyroY,GyroZ,Lat,Long,AltiGPS\n\r\n\r\0";
-    const char buf2[] = "\n\rReading done\n\r\n\r\0";
+    const CHAR buf1[] = "\n\rID,TimeMS,FlightState,Bat,Altitude,Velocity,AccelX,AccelY,AccelZ,GyroX,GyroY,GyroZ,Lat,Long,AltiGPS\n\r\n\r\0";
+    const CHAR buf2[] = "\n\rReading done\n\r\n\r\0";
+	
     //------Hello message----------
-    while(buf1[i]) {
-        XBEE_UART.DATA = buf1[i++];
-        _delay_ms(10);
-    }
+    UART_Xbee_DMA_transfer_blocking_start(buf1, 105);
     _delay_ms(1000);
+	
     //-------start Flash read------S
     uint8_t ch = 0xFF;
     uint8_t FFcnt = 0;
@@ -656,11 +631,8 @@ void InitMemoryRead() {
         else _delay_us(100);
     } while((PORTE.IN & PIN0_bm) && (FFcnt < 100));
     SPI_CS(false);
-    i = 0;
-    while(buf2[i]) {
-        XBEE_UART.DATA = buf2[i++];
-        _delay_ms(1);
-    }
+	
+	UART_Xbee_DMA_transfer_blocking_start(buf2, 18);
 }
 
 void WarmUp() {
@@ -912,8 +884,7 @@ void CalibrationStart() {
 
 int main(void) {
     //_delay_ms(10);	//160ms przy 2MHZ na starcie
-    //sprawdznie poprawnoðci danych w strukturze
-    frame_d.terminate = false;
+	
     Initialization();
 	DetectInitOrientation(&allData_d);	//detect orientation and angle
     sei();
@@ -927,6 +898,7 @@ int main(void) {
     while(1) {
         _delay_us(1);
         if(stan_d.new_data == true) {
+			LED_PORT.OUTSET = LED1;
             //============================================================================
             //								Sensors update
             //============================================================================
@@ -943,9 +915,10 @@ int main(void) {
 				else RTC_d.frameFlashCount = 0;
 			}
             if(!(frame_d.mutex)) frame_d = frame_b;							//jeœli frame_d nie zablokowane -> przepisz z bufora
-            LED_PORT.OUTTGL = LED1;
+			
             //----------------Kalibracja------------
             if(Calibration_d.trigger) SensorCal();
+			LED_PORT.OUTCLR = LED1;
         }
     }
 }

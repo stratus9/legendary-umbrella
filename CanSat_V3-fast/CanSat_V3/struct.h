@@ -12,6 +12,8 @@
 #ifndef STRUCT_H_
 #define STRUCT_H_
 
+#define CHAR uint8_t
+
 //--------------------------struktura obs³ugi czujnika BMP085---------------------------------
 typedef struct BMP085_s{
 	bool data_ready;
@@ -166,13 +168,13 @@ typedef struct stan_s{
 //-------------------------------struktura obs³ugi interfejsu USART----------------
 typedef struct USART_s{
 	uint8_t in_i;			//licznik pozycji bufora wejœciowego
-	char in[50];			//bufer wejœciowy
+	CHAR in[50];			//bufer wejœciowy
 	bool in_inprogress;		//trwa odbiór
 	bool in_ready;			//odebrano ramkê
 	bool in_error;			//b³¹d odbioru
 	
 	uint8_t out_i;			//licznik pozycji bufora wejœciowego
-	char out[50];			//bufer wejœciowy
+	CHAR out[50];			//bufer wejœciowy
 	bool out_inprogress;	//trwa odbiór
 	bool out_ready;			//odebrano ramkê
 	bool out_error;			//b³¹d odbioru
@@ -221,29 +223,29 @@ typedef struct SensorsData_s{
 	float batVoltage;
 	float inTemp;		//on-board highest mean temperature or overheated element temperature
 	float outTemp;		//external temperature sensor data
-	char latitude[13];
-	char longitude[13];
-	char fix;
-	char satNo[3];
+	CHAR latitude[13];
+	CHAR longitude[13];
+	CHAR fix;
+	CHAR satNo[3];
 	float thrust;		
 } SensorsData_t;
 
 //------------------------FRAME--------------------------------------------------
 typedef struct frame_s{
-	char frameASCII[600];
+	CHAR frameASCII[600];
 	uint16_t iUART;
+	uint16_t length;
 	bool mutex;
-	bool terminate;
 	float max_acc;
 	//GPS
-	char latitude[14];
-	char longitude[14];
-	char altitude[9];
+	CHAR latitude[14];
+	CHAR longitude[14];
+	CHAR altitude[9];
 } frame_t;
 
 //---------------------------------Bufor cykliczny-------------
 typedef struct ringBuffer_s{
-	char data[500];
+	CHAR data[500];
 	uint16_t bufferEnd;
 	uint16_t bufferStart;
 	uint8_t bufferCount;
@@ -260,13 +262,13 @@ typedef struct GPS_s{
 	uint8_t mm;
 	uint8_t ss;
 	uint8_t ms;
-	char latitude[14];
-	char longitude[14];
-	char altitude[10];
+	CHAR latitude[14];
+	CHAR longitude[14];
+	CHAR altitude[10];
 	uint8_t satelliteN;
 	uint8_t singnal;
 	uint8_t fix;
-	char buffer[20];
+	CHAR buffer[20];
 	uint8_t count;
 	uint8_t data_count;
 	bool valid;
@@ -400,10 +402,10 @@ typedef union {
 		float outTemp;		//external temperature sensor data
 		
 		//GPS
-		char gps_latitude[13];
-		char gps_longitude[13];
-		char gps_altitude[10];
-		char gps_fix;
+		CHAR gps_latitude[13];
+		CHAR gps_longitude[13];
+		CHAR gps_altitude[10];
+		CHAR gps_fix;
 	};
 } FLASH_dataStruct_t;
 

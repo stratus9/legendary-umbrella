@@ -14,8 +14,9 @@
 #include "CanSat.h"
 
 void prepareFrame(allData_t * allData){
-	sprintf(allData->frame_b->frameASCII,
-	"$SpaceForest,%06lu,%1u,%04.2f,%+08.2f,%+06.1f,%+06.3f,%+06.3f,%+06.3f,%+06.1f,%+06.1f,%+06.1f,%s,%s,%s,%1u\r\n\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0",
+	uint16_t length = 0;
+	length = sprintf((char*)allData->frame_b->frameASCII,
+	"$SpaceForest,%06lu,%1u,%04.2f,%+08.2f,%+06.1f,%+06.3f,%+06.3f,%+06.3f,%+06.1f,%+06.1f,%+06.1f,%s,%s,%s,%1u\r\n",
 	allData->RTC->time,					//czas w ms
 	allData->stan->flightState,			//faza lotu
 	allData->Analog->Vbat,				//napiêcie baterii
@@ -32,7 +33,7 @@ void prepareFrame(allData_t * allData){
 	allData->GPS->altitude,
 	allData->GPS->fix);
 	
-	
+	allData->frame_b->length = length;
 }
 
 
@@ -42,155 +43,12 @@ bool purgeBuffer(ringBuffer_t * bufor){
 	return false;
 }
 
-bool GPSdecode(ringBuffer_t * bufor, GPS_t * gps){
-	/*
-	//first parese
-	int i=0;
-	while(((*bufor).data[i] != '*') && (i < 200)) i++;
-	if(((*bufor).data[i+1] > 47) && ((*bufor).data[i+1] < 58)) (*gps).checksum = ((*bufor).data[i+1] - 48) << 4;
-	else if(((*bufor).data[i+1] > 64) && ((*bufor).data[i+1] < 71)) (*gps).checksum = ((*bufor).data[i+1] - 55) << 4;
-	if(((*bufor).data[i+2] > 47) && ((*bufor).data[i+2] < 58)) (*gps).checksum += (*bufor).data[i+2] - 48;
-	else if(((*bufor).data[i+2] > 64) && ((*bufor).data[i+2] < 71)) (*gps).checksum += (*bufor).data[i+2] - 55;
-
-	//checksum check
-	if((*gps).checksum == NMEAchecksum((*bufor).data)){
-		(*gps).frame_ok = true;
-		(*gps).frame_new = true;
-	}
-	else (*gps).frame_ok = false;
-	(*gps).frame_new = true;		//wywaliæ!!!!!!!!!!!!
-	*/
-	return false;
-}
-
-int NMEAchecksum(char *s) {
+int NMEAchecksum(CHAR *s) {
 	int c = 0;
 	s++;	//pominiêcie pierwszego znaku $
 	while((*s) && ((*s) != '*'))
 	c ^= *s++;
 	return c;
-}
-
-void decodeNMEA(GPS_t * GPS, ringBuffer_t * GPSbuf){
-	/*
-	uint8_t i = 0;
-	uint16_t tmp = 0;
-	i = 1;
-	while((*GPSbuf).data[i] != ','){
-		tmp += (*GPSbuf).data[i];
-		i++;
-	}
-	i++;
-	if(tmp == 358){
-		//-----------------dekodowanie czasu---------------------
-		if((*GPSbuf).data[i] == ',') i++;	//dekoduj kolejn¹ ramkê
-		else if((*GPSbuf).data[i+6] == '.'){
-			(*GPS).hh = ((*GPSbuf).data[i]-48)*10+((*GPSbuf).data[i+1]-48);
-			i = i+2;
-			(*GPS).mm = ((*GPSbuf).data[i]-48)*10+((*GPSbuf).data[i+1]-48);
-			i = i+2;
-			(*GPS).ss = ((*GPSbuf).data[i]-48)*10+((*GPSbuf).data[i+1]-48);
-			i = i+2;
-			i++;	//pominiêcie przecinka
-			(*GPS).ms = ((*GPSbuf).data[i]-48)*100+((*GPSbuf).data[i+1]-48)*10;
-			i = i+2;
-		}
-		//---------------dekodowanie szerokoœci geo---------------
-		if(((*GPSbuf).data[i] == ',') && ((*GPSbuf).data[i+1] == ',')) i = i+2;	//dekoduj kolejn¹ ramkê
-		else if((*GPSbuf).data[i+5] == '.'){
-			i++;
-			(*GPS).latitude = ((*GPSbuf).data[i]-48)*1000+((*GPSbuf).data[i+1]-48)*100+(((*GPSbuf).data[i+2]-48)*100+((*GPSbuf).data[i+3]-48)*10)/6;
-			i = i+5;
-			(*GPS).latitude += ((*GPSbuf).data[i]-48)/10+((*GPSbuf).data[i+1]-48)/100+((*GPSbuf).data[i+2]-48)/1000+((*GPSbuf).data[i+3]-48)/10000+((*GPSbuf).data[i+4]-48)/100000;
-			i = i+5;
-		}
-		if(((*GPSbuf).data[i] == ',') && ((*GPSbuf).data[i+2] == ',')){
-			i++;
-			if((*GPSbuf).data[i] == 'N') (*GPS).latitude = (*GPS).latitude;
-			else if((*GPSbuf).data[i] == 'S') (*GPS).latitude = -(*GPS).latitude;
-			else (*GPS).latitude = 0;
-			i++;
-		}
-		
-		//------------dekodowanie d³ugoœci geo----------------
-		if(((*GPSbuf).data[i] == ',') && ((*GPSbuf).data[i+1] == ',')) i = i+2;	//dekoduj kolejn¹ ramkê
-		else if((*GPSbuf).data[i+6] == '.'){
-			i++;
-			(*GPS).longitude = ((*GPSbuf).data[i]-48)*10000+((*GPSbuf).data[i+1]-48)*1000+((*GPSbuf).data[i+1]-48)*100+(((*GPSbuf).data[i+2]-48)*100+((*GPSbuf).data[i+3]-48)*10)/6;
-			i = i+5;
-			(*GPS).longitude += ((*GPSbuf).data[i]-48)/10+((*GPSbuf).data[i+1]-48)/100+((*GPSbuf).data[i+2]-48)/1000+((*GPSbuf).data[i+3]-48)/10000+((*GPSbuf).data[i+4]-48)/100000;
-			i = i+5;
-		}
-		if(((*GPSbuf).data[i] == ',') && ((*GPSbuf).data[i+2] == ',')){
-			i++;
-			if((*GPSbuf).data[i] == 'E') (*GPS).longitude = (*GPS).longitude;
-			else if((*GPSbuf).data[i] == 'W') (*GPS).longitude = -(*GPS).longitude;
-			else (*GPS).longitude = 0;
-			i++;
-		}
-		
-		//-------------dekodowanie rodzaju FIXa------------
-		if(((*GPSbuf).data[i] == ',') && ((*GPSbuf).data[i+1] == ',')) i = i+2;	//dekoduj kolejn¹ ramkê
-		else if((*GPSbuf).data[i+1] == '1') (*GPS).fix = 1;
-		else if((*GPSbuf).data[i+1] == '2') (*GPS).fix = 2;
-		else (*GPS).fix = 0;
-		i = i+2;
-		
-		//------------u¿ywane satelity--------------------
-		if(((*GPSbuf).data[i] == ',') && ((*GPSbuf).data[i+1] == ',')) i = i+2;	//dekoduj kolejn¹ ramkê
-		else if(((*GPSbuf).data[i] == ',') && ((*GPSbuf).data[i+2] == ',')){
-			(*GPS).satelliteN = (*GPSbuf).data[i+1]-48;
-			i = i+2;
-		}
-		else if(((*GPSbuf).data[i] == ',') && ((*GPSbuf).data[i+3] == ',')){
-			(*GPS).satelliteN = ((*GPSbuf).data[i+1]-48)*10+(*GPSbuf).data[i+2]-48;
-			i = i+3;
-		}
-		
-		//------------dekodowanie dok³adnoœci---------------------
-		if(((*GPSbuf).data[i] == ',') && ((*GPSbuf).data[i+1] == ',')) i = i+2;	//dekoduj kolejn¹ ramkê
-		else{
-			i++;
-			(*GPS).accuracy = 0;
-			while(((*GPSbuf).data[i] == '.') || ((*GPSbuf).data[i] == ',')){
-				(*GPS).accuracy = (*GPS).accuracy*10+(*GPSbuf).data[i]-48;
-				i++;
-			}
-			i++;	//pominiêcie kropki
-			if((*GPSbuf).data[i] != ','){
-				(*GPS).accuracy += ((*GPSbuf).data[i]-48)/10;
-				i++;
-				if((*GPSbuf).data[i] != ','){
-					(*GPS).accuracy += ((*GPSbuf).data[i]-48)/100;
-					i++;
-				}
-			}	
-		}
-		
-		//-----------dekodowanie wysokoœci na poziomem morza-------
-		if(((*GPSbuf).data[i] == ',') && ((*GPSbuf).data[i+1] == ',')) i = i+2;	//dekoduj kolejn¹ ramkê
-		else{
-			i++;
-			(*GPS).altitude = 0;
-			while(((*GPSbuf).data[i] == '.') || ((*GPSbuf).data[i] == ',')){
-				(*GPS).altitude = (*GPS).altitude*10+(*GPSbuf).data[i]-48;
-				i++;
-			}
-			i++;	//pominiêcie kropki
-			if((*GPSbuf).data[i] != ','){
-				(*GPS).altitude += ((*GPSbuf).data[i]-48)/10;
-				i++;
-				if((*GPSbuf).data[i] != ','){
-					(*GPS).altitude += ((*GPSbuf).data[i]-48)/100;
-					i++;
-				}
-			}	
-		}
-		
-		//----------------koniec sensownego dekodowania----------
-	}
- 	(*GPSbuf).mutex = false;
-	 */
 }
 
 void GPSbuf_init(GPS_t * gps){
@@ -259,3 +117,107 @@ float MinAngleVector3D(float x, float y, float z){
 	else if((angle3 <= angle2) && (angle3 <= angle1)) return angle3;
 	else return 0;
 }
+
+
+
+volatile uint8_t xbee_DMA_ready = 1;
+
+
+void UART_Xbee_DMA_transfer_nonblocking_start(uint8_t * source, uint16_t length) {
+	DMA.CH0.SRCADDR0    =   (uint16_t)source & 0xFF;			// adres Ÿród³a
+	DMA.CH0.SRCADDR1    =   (uint16_t)source >> 8;
+	DMA.CH0.SRCADDR2    =   0;
+	
+	DMA.CH0.DESTADDR0   =   (uint16_t)&XBEE_UART.DATA & 0xFF;    // adres celu
+	DMA.CH0.DESTADDR1   =   (uint16_t)&XBEE_UART.DATA >> 8;
+	DMA.CH0.DESTADDR2   =   0;
+	
+	DMA.CH0.TRFCNT      =   length;							// rozmiar bloku
+	DMA.CH0.TRIGSRC     =   DMA_CH_TRIGSRC_USARTD0_DRE_gc;  // kana³ CH0 powoduje transfer
+	DMA.CH0.ADDRCTRL    =   DMA_CH_SRCRELOAD_BLOCK_gc|      // prze³adowanie adresu Ÿród³a po zakoñczeniu bloku
+							DMA_CH_SRCDIR_INC_gc|           // zwiêkszanie adresu Ÿród³a po ka¿dym bajcie
+							DMA_CH_DESTRELOAD_NONE_gc|      // prze³adowanie adresu celu nigdy
+							DMA_CH_DESTDIR_FIXED_gc;        // sta³y adres docelowy
+	DMA.CH0.CTRLB		=	DMA_CH_TRNIF_bm;				// Skasuj flagê zakoñczenia transferu 
+	DMA.CH0.CTRLA       =   DMA_CH_ENABLE_bm|               // w³¹czenie kana³u
+							DMA_CH_BURSTLEN_1BYTE_gc|       // burst = 1 bajt
+							DMA_CH_SINGLE_bm;               // pojedynczy burst po ka¿dym zdarzeniu
+}
+
+void UART_Xbee_DMA_transfer_blocking_start(uint8_t * source, uint16_t length) {
+	DMA.CH0.SRCADDR0    =   (uint16_t)source & 0xFF;			// adres Ÿród³a
+	DMA.CH0.SRCADDR1    =   (uint16_t)source >> 8;
+	DMA.CH0.SRCADDR2    =   0;
+	
+	DMA.CH0.DESTADDR0   =   (uint16_t)&XBEE_UART.DATA & 0xFF;    // adres celu
+	DMA.CH0.DESTADDR1   =   (uint16_t)&XBEE_UART.DATA >> 8;
+	DMA.CH0.DESTADDR2   =   0;
+	
+	DMA.CH0.TRFCNT      =   length;							// rozmiar bloku
+	DMA.CH0.TRIGSRC     =   DMA_CH_TRIGSRC_USARTD0_DRE_gc;  // kana³ CH0 powoduje transfer
+	DMA.CH0.ADDRCTRL    =   DMA_CH_SRCRELOAD_BLOCK_gc|      // prze³adowanie adresu Ÿród³a po zakoñczeniu bloku
+							DMA_CH_SRCDIR_INC_gc|           // zwiêkszanie adresu Ÿród³a po ka¿dym bajcie
+							DMA_CH_DESTRELOAD_NONE_gc|      // prze³adowanie adresu celu nigdy
+							DMA_CH_DESTDIR_FIXED_gc;        // sta³y adres docelowy
+	DMA.CH0.CTRLB		=	DMA_CH_TRNIF_bm;				// Skasuj flagê zakoñczenia transferu
+	DMA.CH0.CTRLA       =   DMA_CH_ENABLE_bm|               // w³¹czenie kana³u
+							DMA_CH_BURSTLEN_1BYTE_gc|       // burst = 1 bajt
+							DMA_CH_SINGLE_bm;               // pojedynczy burst po ka¿dym zdarzeniu
+	
+	while (!(DMA.CH0.CTRLB & DMA_CH_TRNIF_bm)) {}
+}
+
+uint8_t UART_Xbee_DMA_transfer_nonblocking_ready() {
+	return DMA.CH0.CTRLB & DMA_CH_TRNIF_bm;
+}
+
+
+// void SPI_Flash_DMA_transfer_nonblocking_start(uint8_t * source, uint16_t length) {
+// 	DMA.CH1.SRCADDR0    =   (uint16_t)source & 0xFF;			// adres Ÿród³a
+// 	DMA.CH1.SRCADDR1    =   (uint16_t)source >> 8;
+// 	DMA.CH1.SRCADDR2    =   0;
+// 	
+// 	DMA.CH1.DESTADDR0   =   (uint16_t)&SPIC.DATA & 0xFF;    // adres celu
+// 	DMA.CH1.DESTADDR1   =   (uint16_t)&SPIC.DATA >> 8;
+// 	DMA.CH1.DESTADDR2   =   0;
+// 	
+// 	DMA.CH1.TRFCNT      =   length;							// rozmiar bloku
+// 	DMA.CH1.TRIGSRC     =   DMA_CH_TRIGSRC_SPIC_gc;			// kana³ CH1 powoduje transfer
+// 	DMA.CH1.ADDRCTRL    =   DMA_CH_SRCRELOAD_BLOCK_gc|      // prze³adowanie adresu Ÿród³a po zakoñczeniu bloku
+// 	DMA_CH_SRCDIR_INC_gc|           // zwiêkszanie adresu Ÿród³a po ka¿dym bajcie
+// 	DMA_CH_DESTRELOAD_NONE_gc|      // prze³adowanie adresu celu nigdy
+// 	DMA_CH_DESTDIR_FIXED_gc;        // sta³y adres docelowy
+// 	DMA.CH1.CTRLB		=	DMA_CH_TRNIF_bm;				// Skasuj flagê zakoñczenia transferu
+// 	DMA.CH1.CTRLA       =   DMA_CH_ENABLE_bm|               // w³¹czenie kana³u
+// 	DMA_CH_BURSTLEN_1BYTE_gc|       // burst = 1 bajt
+// 	DMA_CH_SINGLE_bm;               // pojedynczy burst po ka¿dym zdarzeniu
+// }
+// 
+// void SPI_Flash_DMA_transfer_blocking_start(uint8_t * source, uint16_t length) {
+// 	DMA.CH1.CTRLA		=	DMA_CH_RESET_bm;
+// 	
+// 	DMA.CH1.SRCADDR0    =   (uint16_t)source & 0xFF;			// adres Ÿród³a
+// 	DMA.CH1.SRCADDR1    =   (uint16_t)source >> 8;
+// 	DMA.CH1.SRCADDR2    =   0;
+// 	
+// 	DMA.CH1.DESTADDR0   =   (uint16_t)&SPIC.DATA & 0xFF;    // adres celu
+// 	DMA.CH1.DESTADDR1   =   (uint16_t)&SPIC.DATA >> 8;
+// 	DMA.CH1.DESTADDR2   =   0;
+// 	
+// 	DMA.CH1.TRFCNT      =   length;							// rozmiar bloku
+// 	DMA.CH1.TRIGSRC     =   DMA_CH_TRIGSRC_SPIC_gc;			// kana³ CH1 powoduje transfer
+// 	DMA.CH1.ADDRCTRL    =   DMA_CH_SRCRELOAD_BLOCK_gc|      // prze³adowanie adresu Ÿród³a po zakoñczeniu bloku
+// 							DMA_CH_SRCDIR_INC_gc|           // zwiêkszanie adresu Ÿród³a po ka¿dym bajcie
+// 							DMA_CH_DESTRELOAD_NONE_gc|      // prze³adowanie adresu celu nigdy
+// 							DMA_CH_DESTDIR_FIXED_gc;        // sta³y adres docelowy
+// 	DMA.CH1.CTRLB		=	DMA_CH_TRNIF_bm;				// Skasuj flagê zakoñczenia transferu
+// 	DMA.CH1.CTRLA       =   DMA_CH_ENABLE_bm|               // w³¹czenie kana³u
+// 							DMA_CH_BURSTLEN_1BYTE_gc|       // burst = 1 bajt
+// 							DMA_CH_SINGLE_bm;               // pojedynczy burst po ka¿dym zdarzeniu
+// 	
+// 	while (!(DMA.CH1.CTRLB & DMA_CH_TRNIF_bm)) {}
+// }
+// 
+// uint8_t SPI_Flash_DMA_transfer_nonblocking_ready() {
+// 	return DMA.CH1.CTRLB & DMA_CH_TRNIF_bm;
+// }
