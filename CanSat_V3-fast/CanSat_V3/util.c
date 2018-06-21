@@ -13,74 +13,29 @@
 #include "util.h"
 #include "CanSat.h"
 
-void float2char(float number,char * tablica){
-	uint16_t tmp;
-	if(number < 0){
-		*(tablica) = '-';
-		tmp = 10*(-number);
-	}
-	else{
-		*(tablica) = '+';
-		tmp = 10*number;
-	}
-	*(tablica+1) = ((tmp%100000UL)/10000UL) + 48;
-	*(tablica+2) = ((tmp%10000UL)/1000UL) + 48;
-	*(tablica+3) = ((tmp%1000UL)/100) + 48;
-	*(tablica+4) = ((tmp%100)/10) + 48;
-	*(tablica+5) = '.';
-	*(tablica+6) = ((tmp%10)) + 48;
-}
-
 void prepareFrame(allData_t * allData){
-	sprintf(allData->frame->frameASCII,
-	"$AGHSS,%06lu,%1u,%01.2f,%+05.2f,%+04.1f,%+02.3f,%+04.1f,%s,%s,%s,%1u\r\n",
+	sprintf(allData->frame_b->frameASCII,
+	"$SpaceForest,%06lu,%1u,%04.2f,%+08.2f,%+06.1f,%+06.3f,%+06.3f,%+06.3f,%+06.1f,%+06.1f,%+06.1f,%s,%s,%s,%1u\r\n\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0",
 	allData->RTC->time,					//czas w ms
 	allData->stan->flightState,			//faza lotu
 	allData->Analog->Vbat,				//napiêcie baterii
 	allData->SensorsData->altitude,		//wysokoœæ lotu w m
 	allData->SensorsData->ascentVelo,	//prêdkoœæ wznoszenia w m/s
 	allData->SensorsData->accel_x,		//przyspieszenie w osi rakiety w g
+	allData->SensorsData->accel_y,		//przyspieszenie w osi Y rakiety w g
+	allData->SensorsData->accel_z,		//przyspieszenie w osi Z rakiety w g
 	allData->SensorsData->gyro_x,		//prêdkoœæ obrotu w osi rakiety w deg/s
+	allData->SensorsData->gyro_y,		//prêdkoœæ obrotu w osi Y rakiety w deg/s
+	allData->SensorsData->gyro_z,		//prêdkoœæ obrotu w osi Z rakiety w deg/s
 	allData->GPS->latitude,
 	allData->GPS->longitude,
 	allData->GPS->altitude,
 	allData->GPS->fix);
+	
+	
 }
 
-char ringBuffer_read(ringBuffer_t * bufor){
-	char tmp;
-	if((((*bufor).bufferEnd - (*bufor).bufferStart) != 0) && ((*bufor).mutex == false)){
-		tmp = (*bufor).data[(*bufor).bufferStart];
-		(*bufor).bufferStart = ((*bufor).bufferStart + 1)%490;
-		(*bufor).mutex = false;
-	}
-	else tmp = 0;
-	return tmp;
-}
 
-bool ringBuffer_addChar(ringBuffer_t * bufor, char value){
-	if(((*bufor).bufferFull == false) && ((*bufor).mutex == false)){
-		(*bufor).mutex = true;
-		(*bufor).data[(*bufor).bufferEnd] = value;
-		(*bufor).bufferEnd = ((*bufor).bufferEnd + 1)%490;
-		if((*bufor).bufferEnd >= 495) (*bufor).bufferFull = true;
-		(*bufor).mutex = false;
-		return false;
-	}
-	else return true;
-}
-
-bool ringBuffer_addString(ringBuffer_t * bufor, char * text, uint16_t text_length){
-	if(((*bufor).bufferFull == false) && ((text_length + (*bufor).bufferFull) < 495) && ((*bufor).mutex == false)){
-		(*bufor).mutex = true;
-		while(*text){
-			ringBuffer_addChar(bufor,(*text++));
-		}
-		(*bufor).mutex = true;
-		return false;
-	}
-	else return true;
-}
 
 bool purgeBuffer(ringBuffer_t * bufor){
 	(*bufor).bufferEnd = 0;

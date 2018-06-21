@@ -18,13 +18,11 @@ uint8_t SPI_Status(void);
 void SPI_ChipErase(void);
 char SPI_Read(uint32_t address,uint16_t size, char * tablica);
 void SPI_WriteByte(uint32_t address, uint8_t data);
-void SPI_WriteProtection(bool block);
+void SPI_WriteNBytes(uint32_t address, uint8_t * data, uint8_t len);
+void SPI_WriteProtection();
 void SPI_CmdSend(char cmd);
-void SPI_AAI_Mode_Start(void);
-void SPI_AAI_Mode_Stop(void);
-void SPI_WriteFin(void);
+void SPI_WriteReady(void);
 char SPI_ReadByte(uint32_t address);
-uint32_t SPI_FindEnd(void);
-void SPI_WriteFrame(uint32_t * adres, uint16_t frame_length, frame_t * frame);
-//void SPI_PageWrite(uint16_t page, uint16_t page_length, frame_t * frame);
+uint32_t SPI_FindEnd(uint32_t length);
+void SPI_WriteFrame(uint32_t * adres, uint16_t frame_length, uint8_t * frame);
 #endif /* SPI_H_ */
