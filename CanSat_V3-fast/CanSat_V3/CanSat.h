@@ -99,6 +99,7 @@ void Kinematics(allData_t* allData_d);
 void SensorCal(void);
 void BT_Start(frame_t *);
 void SensorUpdate(allData_t *);
+void SensorCompute(allData_t * allData);
 void StateUpdate(allData_t *);
 void Buzzer2Beep(void);
 void Parachute1deploy();

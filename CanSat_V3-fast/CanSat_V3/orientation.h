@@ -11,7 +11,7 @@
 
 #define SQ(x) ((x)*(x))
 #define DEGREES_TO_RADIANS(angle) ((angle) * 0.0174532925f)
-#define M_PIf       3.14159265358979323846f
+#define M_PIf 3.14159265358979323846f
 #define SPIN_RATE_LIMIT 20	//limit prêdkoœci obrotowej <- do liczenia orientacji
 
 

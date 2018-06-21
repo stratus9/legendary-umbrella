@@ -157,6 +157,8 @@ Discarded input sections
                 0x00000000       0x2c CanSat.o
  .text.SensorUpdate
                 0x00000000       0xa0 CanSat.o
+ .text.SensorCompute
+                0x00000000        0x2 CanSat.o
  .text.StateUpdate
                 0x00000000      0x3b8 CanSat.o
  .progmem.gcc_sw_table.StateUpdate
@@ -1417,20 +1419,20 @@ END GROUP
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x00000000     0xd30b
+.debug_info     0x00000000     0xd308
  *(.debug_info .gnu.linkonce.wi.*)
  .debug_info    0x00000000     0x3379 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avrxmega6/crtatxmega256a3bu.o
  .debug_info    0x00003379      0x70c ADC.o
- .debug_info    0x00003a85     0x2bde CanSat.o
- .debug_info    0x00006663      0x35e I2C.o
- .debug_info    0x000069c1      0xf2f orientation.o
- .debug_info    0x000078f0     0x14cf SPI.o
- .debug_info    0x00008dbf     0x1375 Initialization.o
- .debug_info    0x0000a134      0x479 LIS331HH.o
- .debug_info    0x0000a5ad      0x33b LPS25H.o
- .debug_info    0x0000a8e8      0x5eb LSM9DS0.o
- .debug_info    0x0000aed3      0x8e7 MPU9150.o
- .debug_info    0x0000b7ba     0x1b51 util.o
+ .debug_info    0x00003a85     0x2bfa CanSat.o
+ .debug_info    0x0000667f      0x35e I2C.o
+ .debug_info    0x000069dd      0xf10 orientation.o
+ .debug_info    0x000078ed     0x14cf SPI.o
+ .debug_info    0x00008dbc     0x1375 Initialization.o
+ .debug_info    0x0000a131      0x479 LIS331HH.o
+ .debug_info    0x0000a5aa      0x33b LPS25H.o
+ .debug_info    0x0000a8e5      0x5eb LSM9DS0.o
+ .debug_info    0x0000aed0      0x8e7 MPU9150.o
+ .debug_info    0x0000b7b7     0x1b51 util.o
 
 .debug_abbrev   0x00000000     0x4944
  *(.debug_abbrev)
@@ -1447,59 +1449,59 @@ END GROUP
  .debug_abbrev  0x0000448f      0x210 MPU9150.o
  .debug_abbrev  0x0000469f      0x2a5 util.o
 
-.debug_line     0x00000000     0x3b7d
+.debug_line     0x00000000     0x3b83
  *(.debug_line .debug_line.* .debug_line_end)
  .debug_line    0x00000000       0x1a c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avrxmega6/crtatxmega256a3bu.o
  .debug_line    0x0000001a      0x22e ADC.o
- .debug_line    0x00000248     0x11d0 CanSat.o
- .debug_line    0x00001418      0x1e4 I2C.o
- .debug_line    0x000015fc      0x610 orientation.o
- .debug_line    0x00001c0c      0x97a SPI.o
- .debug_line    0x00002586      0x53b Initialization.o
- .debug_line    0x00002ac1      0x26d LIS331HH.o
- .debug_line    0x00002d2e      0x174 LPS25H.o
- .debug_line    0x00002ea2      0x415 LSM9DS0.o
- .debug_line    0x000032b7      0x3c1 MPU9150.o
- .debug_line    0x00003678      0x505 util.o
+ .debug_line    0x00000248     0x11d6 CanSat.o
+ .debug_line    0x0000141e      0x1e4 I2C.o
+ .debug_line    0x00001602      0x610 orientation.o
+ .debug_line    0x00001c12      0x97a SPI.o
+ .debug_line    0x0000258c      0x53b Initialization.o
+ .debug_line    0x00002ac7      0x26d LIS331HH.o
+ .debug_line    0x00002d34      0x174 LPS25H.o
+ .debug_line    0x00002ea8      0x415 LSM9DS0.o
+ .debug_line    0x000032bd      0x3c1 MPU9150.o
+ .debug_line    0x0000367e      0x505 util.o
 
-.debug_frame    0x00000000     0x1204
+.debug_frame    0x00000000     0x1214
  *(.debug_frame)
  .debug_frame   0x00000000       0x7c ADC.o
- .debug_frame   0x0000007c      0x490 CanSat.o
- .debug_frame   0x0000050c       0x44 I2C.o
- .debug_frame   0x00000550      0x3e0 orientation.o
- .debug_frame   0x00000930      0x284 SPI.o
- .debug_frame   0x00000bb4      0x13c Initialization.o
- .debug_frame   0x00000cf0       0x98 LIS331HH.o
- .debug_frame   0x00000d88       0xec LPS25H.o
- .debug_frame   0x00000e74       0x48 LSM9DS0.o
- .debug_frame   0x00000ebc      0x12c MPU9150.o
- .debug_frame   0x00000fe8      0x21c util.o
+ .debug_frame   0x0000007c      0x4a0 CanSat.o
+ .debug_frame   0x0000051c       0x44 I2C.o
+ .debug_frame   0x00000560      0x3e0 orientation.o
+ .debug_frame   0x00000940      0x284 SPI.o
+ .debug_frame   0x00000bc4      0x13c Initialization.o
+ .debug_frame   0x00000d00       0x98 LIS331HH.o
+ .debug_frame   0x00000d98       0xec LPS25H.o
+ .debug_frame   0x00000e84       0x48 LSM9DS0.o
+ .debug_frame   0x00000ecc      0x12c MPU9150.o
+ .debug_frame   0x00000ff8      0x21c util.o
 
-.debug_str      0x00000000     0x5641
+.debug_str      0x00000000     0x564f
  *(.debug_str)
  .debug_str     0x00000000     0x21e4 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avrxmega6/crtatxmega256a3bu.o
  .debug_str     0x000021e4      0x755 ADC.o
                                 0x7b1 (size before relaxing)
- .debug_str     0x00002939      0xf6c CanSat.o
-                               0x12e5 (size before relaxing)
- .debug_str     0x000038a5      0x132 I2C.o
+ .debug_str     0x00002939      0xf7a CanSat.o
+                               0x12f3 (size before relaxing)
+ .debug_str     0x000038b3      0x132 I2C.o
                                 0x30e (size before relaxing)
- .debug_str     0x000039d7      0x1f9 orientation.o
+ .debug_str     0x000039e5      0x1f9 orientation.o
                                 0x6a7 (size before relaxing)
- .debug_str     0x00003bd0       0xe2 SPI.o
+ .debug_str     0x00003bde       0xe2 SPI.o
                                 0x432 (size before relaxing)
- .debug_str     0x00003cb2      0xcf4 Initialization.o
+ .debug_str     0x00003cc0      0xcf4 Initialization.o
                                0x1321 (size before relaxing)
- .debug_str     0x000049a6       0x29 LIS331HH.o
+ .debug_str     0x000049b4       0x29 LIS331HH.o
                                 0x398 (size before relaxing)
- .debug_str     0x000049cf       0x3f LPS25H.o
+ .debug_str     0x000049dd       0x3f LPS25H.o
                                 0x2b2 (size before relaxing)
- .debug_str     0x00004a0e        0xf LSM9DS0.o
+ .debug_str     0x00004a1c        0xf LSM9DS0.o
                                 0x482 (size before relaxing)
- .debug_str     0x00004a1d       0x8e MPU9150.o
+ .debug_str     0x00004a2b       0x8e MPU9150.o
                                 0x5a1 (size before relaxing)
- .debug_str     0x00004aab      0xb96 util.o
+ .debug_str     0x00004ab9      0xb96 util.o
                                0x16d2 (size before relaxing)
 
 .debug_loc      0x00000000     0x6307

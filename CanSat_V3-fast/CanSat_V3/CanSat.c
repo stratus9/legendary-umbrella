@@ -455,10 +455,28 @@ void SensorUpdate(allData_t * allData) {
     //-----------------Read ADC-------------
     AnalogUpdate(allData->Analog);
 	
-	
-	//do router lub funkcji i wywaliæ jak najwiêcej!
     //-----------------Additional-----------
     if(LPS25H_d.altitude > LPS25H_d.max_altitude) LPS25H_d.max_altitude = LPS25H_d.altitude;
+}
+
+void SensorCompute(allData_t * allData){
+	//sprawdŸ poprawnoœæ pomiarów
+	//jakieœ lekkie filtrowanie?
+	//mo¿e uwzglêdnienie redundantnych czujników
+	
+	allData->SensorsData->accel_x = allData->MPU9150->accel_x;
+	allData->SensorsData->accel_y = allData->MPU9150->accel_y;
+	allData->SensorsData->accel_z = allData->MPU9150->accel_z;
+	
+	allData->SensorsData->gyro_x = allData->MPU9150->gyro_x;
+	allData->SensorsData->gyro_y = allData->MPU9150->gyro_y;
+	allData->SensorsData->gyro_z = allData->MPU9150->gyro_z;
+	
+	allData->SensorsData->mag_x = allData->MPU9150->mag_y;
+	allData->SensorsData->mag_y = allData->MPU9150->mag_x;
+	allData->SensorsData->mag_z = -allData->MPU9150->mag_z;
+	
+	//wrzucenie wyników do SensorData_d
 }
 
 void StateUpdate(allData_t * allData) {
@@ -721,7 +739,8 @@ int main(void) {
             //============================================================================
             stan_d.new_data = false;	//DRY flag clear
             SensorUpdate(&allData_d);		//2320us
-			Kinematics(&allData_d);	//8us
+			SensorCompute(&allData_d);
+			Kinematics(&allData_d);	//
             StateUpdate(&allData_d);		//21us
 			
             //----------------Prepare frame---------

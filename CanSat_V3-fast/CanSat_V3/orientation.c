@@ -51,8 +51,6 @@ void imuTransformVectorBodyToEarth(vector_t * v, vector_t *outVector, float angl
 }
 
 void imuUpdateEulerAngles(orientation_t * orient){	// OK
-	quaternionProd_t buffer;
-
 	orient->euler.roll = atan2f(orient->rMat[2][1], orient->rMat[2][2]) * (180.0f / M_PIf);
 	orient->euler.pitch = ((0.5f * M_PIf) - acosf(-orient->rMat[2][0])) * (180.0f / M_PIf);
 	orient->euler.yaw = (-atan2f(orient->rMat[1][0], orient->rMat[0][0]) * (180.0f / M_PIf));

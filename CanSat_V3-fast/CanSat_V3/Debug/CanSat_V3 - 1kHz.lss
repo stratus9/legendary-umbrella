@@ -15,19 +15,19 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY
   5 .debug_aranges 00000450  00000000  00000000  00005c70  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_info   0000d30b  00000000  00000000  000060c0  2**0
+  6 .debug_info   0000d308  00000000  00000000  000060c0  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_abbrev 00004944  00000000  00000000  000133cb  2**0
+  7 .debug_abbrev 00004944  00000000  00000000  000133c8  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_line   00003b7d  00000000  00000000  00017d0f  2**0
+  8 .debug_line   00003b83  00000000  00000000  00017d0c  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_frame  00001204  00000000  00000000  0001b88c  2**2
+  9 .debug_frame  00001214  00000000  00000000  0001b890  2**2
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_str    00005641  00000000  00000000  0001ca90  2**0
+ 10 .debug_str    0000564f  00000000  00000000  0001caa4  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_loc    00006307  00000000  00000000  000220d1  2**0
+ 11 .debug_loc    00006307  00000000  00000000  000220f3  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_ranges 00000448  00000000  00000000  000283d8  2**0
+ 12 .debug_ranges 00000448  00000000  00000000  000283fa  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -2547,8 +2547,6 @@ void SensorUpdate(allData_t * allData) {
     1708:	90 91 6e 2a 	lds	r25, 0x2A6E	; 0x802a6e <allData_d+0x9>
     170c:	0e 94 3e 02 	call	0x47c	; 0x47c <AnalogUpdate>
 	
-	
-	//do router lub funkcji i wywaliæ jak najwiêcej!
     //-----------------Additional-----------
     if(LPS25H_d.altitude > LPS25H_d.max_altitude) LPS25H_d.max_altitude = LPS25H_d.altitude;
     1710:	80 90 b4 23 	lds	r8, 0x23B4	; 0x8023b4 <LPS25H_d+0x12>
@@ -2592,8 +2590,8 @@ void OrientationUpdate(allData_t * allData){
     1768:	81 e8       	ldi	r24, 0x81	; 129
     176a:	9a e2       	ldi	r25, 0x2A	; 42
     176c:	b2 d3       	rcall	.+1892   	; 0x1ed2 <Orientation_CalcKinematics>
-    //-----------------Additional-----------
-    if(LPS25H_d.altitude > LPS25H_d.max_altitude) LPS25H_d.max_altitude = LPS25H_d.altitude;
+	
+	//wrzucenie wyników do SensorData_d
 }
 
 void StateUpdate(allData_t * allData) {
@@ -2609,8 +2607,8 @@ void StateUpdate(allData_t * allData) {
     177e:	10 92 79 29 	sts	0x2979, r1	; 0x802979 <stan_d+0x5>
         PORTD_OUTCLR = PIN1_bm;
     1782:	d0 93 66 06 	sts	0x0666, r29	; 0x800666 <__TEXT_REGION_LENGTH__+0x700666>
-            SensorUpdate(&allData_d);		//2320us
-			Kinematics(&allData_d);	//8us
+			SensorCompute(&allData_d);
+			Kinematics(&allData_d);	//
             StateUpdate(&allData_d);		//21us
 			
             //----------------Prepare frame---------
@@ -5055,11 +5053,11 @@ void Orientation_CalcOrientation(SensorsData_t * sensor, orientation_t * orient,
 	imuComputeRotationMatrix(orient);
     2a5c:	cd 01       	movw	r24, r26
     2a5e:	de d8       	rcall	.-3652   	; 0x1c1c <imuComputeRotationMatrix>
+	outVector->y = -y;
+	outVector->z = z;
 }
 
 void imuUpdateEulerAngles(orientation_t * orient){	// OK
-	quaternionProd_t buffer;
-
 	orient->euler.roll = atan2f(orient->rMat[2][1], orient->rMat[2][2]) * (180.0f / M_PIf);
     2a60:	ed a5       	ldd	r30, Y+45	; 0x2d
     2a62:	fe a5       	ldd	r31, Y+46	; 0x2e
