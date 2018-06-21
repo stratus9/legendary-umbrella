@@ -16,7 +16,7 @@
 void prepareFrame(allData_t * allData){
 	uint16_t length = 0;
 	length = sprintf((char*)allData->frame_b->frameASCII,
-	"$SpaceForest,%06lu,%1u,%04.2f,%+08.2f,%+06.1f,%+06.3f,%+06.3f,%+06.3f,%+06.1f,%+06.1f,%+06.1f,%s,%s,%s,%1u\r\n",
+	"$SpaceForest,%06lu,%1u,%04.2f,%+08.2f,%+06.1f,%+06.2f,%+06.2f,%+06.2f,%+06.1f,%+06.1f,%+06.1f,%+09.5f,%+010.5f,%+08.1f,%1u\r\n",
 	allData->RTC->time,					//czas w ms
 	allData->stan->flightState,			//faza lotu
 	allData->Analog->Vbat,				//napiêcie baterii
@@ -28,9 +28,9 @@ void prepareFrame(allData_t * allData){
 	allData->SensorsData->gyro_x,		//prêdkoœæ obrotu w osi rakiety w deg/s
 	allData->SensorsData->gyro_y,		//prêdkoœæ obrotu w osi Y rakiety w deg/s
 	allData->SensorsData->gyro_z,		//prêdkoœæ obrotu w osi Z rakiety w deg/s
-	allData->GPS->latitude,
-	allData->GPS->longitude,
-	allData->GPS->altitude,
+	allData->GPS->lat/10000000.0,
+	allData->GPS->lon/10000000.0,
+	allData->GPS->alti/10.0,
 	allData->GPS->fix);
 	
 	allData->frame_b->length = length;
@@ -221,3 +221,62 @@ uint8_t UART_Xbee_DMA_transfer_nonblocking_ready() {
 // uint8_t SPI_Flash_DMA_transfer_nonblocking_ready() {
 // 	return DMA.CH1.CTRLB & DMA_CH_TRNIF_bm;
 // }
+
+void GPS_toNumber(GPS_t * GPS) {
+	CHAR buf[12];
+	// decode Latitude from char to num
+	buf[0] = GPS->latitude[1];
+	buf[1] = GPS->latitude[2];
+	buf[2] = 0;
+	uint8_t lat1 = (buf[0]-48)*10 + (buf[1]-48);	//stopnie
+	
+	buf[0] = GPS->latitude[3];
+	buf[1] = GPS->latitude[4];
+	buf[2] = GPS->latitude[6];
+	buf[3] = GPS->latitude[7];
+	buf[4] = GPS->latitude[8];
+	buf[5] = GPS->latitude[9];
+	buf[6] = GPS->latitude[10];
+	buf[7] = 0;
+	
+	uint32_t lat2 = atol((char*)buf);					//minuty*100000
+	lat2 /= 0.6f;
+	
+	int32_t lat = lat1*10000000 + lat2;
+	if(GPS->latitude[0] == 'N') lat = lat;
+	else if (GPS->latitude[0] == 'S') lat = -lat;
+	else lat = 0;
+	
+	// decode Longitude from char to num
+	buf[0] = GPS->longitude[1];
+	buf[1] = GPS->longitude[2];
+	buf[2] = GPS->longitude[3];
+	buf[3] = 0;
+	uint8_t lon1 = atoi((char*)buf);	//stopnie
+	
+	buf[0] = GPS->longitude[4];
+	buf[1] = GPS->longitude[5];
+	buf[2] = GPS->longitude[7];
+	buf[3] = GPS->longitude[8];
+	buf[4] = GPS->longitude[9];
+	buf[5] = GPS->longitude[10];
+	buf[6] = GPS->longitude[11];
+	buf[7] = 0;
+	
+	uint32_t lon2 = atol((char*)buf);					//minuty*100000
+	lon2 /= 0.6f;
+	
+	int32_t lon = lon1*10000000 + lon2;
+	if(GPS->longitude[0] == 'E') lon = lon;
+	else if (GPS->longitude[0] == 'W') lon = -lon;
+	else lon = 0;
+	
+	// decode Altiutde from char to num
+	/* TODO */
+	float alti = atof((char*)GPS->altitude);
+	
+// 	// przepisanie do struktury GPS
+	GPS->lat = lat;
+ 	GPS->lon = lon;
+ 	GPS->alti = (int32_t)(alti*10.0);	//w mm
+}

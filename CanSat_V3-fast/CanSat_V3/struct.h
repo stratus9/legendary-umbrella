@@ -265,6 +265,11 @@ typedef struct GPS_s{
 	CHAR latitude[14];
 	CHAR longitude[14];
 	CHAR altitude[10];
+	
+	int32_t lat;
+	int32_t lon;
+	int32_t alti;
+	
 	uint8_t satelliteN;
 	uint8_t singnal;
 	uint8_t fix;
@@ -419,6 +424,18 @@ typedef struct {
 }FLASH_pageStruct_t;
 
 typedef struct {
+	float accelX;
+	float accelY;
+	float accelZ;
+	float velocityX;
+	float velocityY;
+	float velocityZ;
+	float positionX;
+	float positionY;
+	float positionZ;
+} Inertial_t;
+
+typedef struct {
 	MPU9150_t * MPU9150;
 	LSM9DS0_t * LSM9DS0;
 	LPS25H_t * LPS25H;
@@ -435,17 +452,7 @@ typedef struct {
 	Inertial_t * Inertial;
 } allData_t;
 
-typedef struct {
-	float accelX;
-	float accelY;
-	float accelZ;
-	float velocityX;
-	float velocityY;
-	float velocityZ;
-	float positionX;
-	float positionY;
-	float positionZ;
-} Inertial_t;
+
  
 
 #endif /* STRUCT_H_ */

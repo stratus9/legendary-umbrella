@@ -27,6 +27,7 @@ float MinAngleVector3D(float, float, float);
 void UART_Xbee_DMA_transfer_nonblocking_start(uint8_t * source, uint16_t length);
 void UART_Xbee_DMA_transfer_blocking_start(uint8_t * source, uint16_t length);
 uint8_t UART_Xbee_DMA_transfer_nonblocking_ready();
+void GPS_toNumber(GPS_t * GPS);
 void SPI_Flash_DMA_transfer_nonblocking_start(uint8_t * source, uint16_t length);
 void SPI_Flash_DMA_transfer_blocking_start(uint8_t * source, uint16_t length);
 uint8_t SPI_Flash_DMA_transfer_nonblocking_ready();

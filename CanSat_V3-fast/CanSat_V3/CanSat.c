@@ -34,6 +34,7 @@
 //	- wywaliæ router pomiarów
 //	- dodaæ nowy algorytm wyznaczania orientacji
 //	- dodaæ wyznaczanie k¹t¹ odhcylenia od pionu
+//	+ dekodowanie wysokoœci z NMEA do liczby
 
 
 //-----------------------------------Struktury globalne---------------------------------------------
@@ -146,6 +147,7 @@ ISR(USARTF0_RXC_vect) {
                     GPS_b.altitude[i] = GPS_b.buffer[i];
                     i++;
                 }
+				GPS_toNumber(&GPS_b);	// 138us
                 GPS_d = GPS_b;	//przepisanie danych z bufora
                 break;
             default:
@@ -330,8 +332,8 @@ void FLASHerase(void) {
 }
 
 void FLASH_saveData(allData_t * allData_d){
-	FLASH_dataStruct_t FLASH_struct_d;
-	FLASH_struct_d.marker = 0xAA;
+	//FLASH_dataStruct_t FLASH_struct_d;
+	//FLASH_struct_d.marker = 0xAA;
 	/*
 	FLASH_struct_d.IGN = allData_d->stan->IGN;
 	FLASH_struct_d.MFV = allData_d->stan->MFV;
@@ -709,7 +711,7 @@ int main(void) {
     while(1) {
         _delay_us(1);
         if(stan_d.new_data == true) {
-			LED_PORT.OUTSET = LED1;
+			//LED_PORT.OUTSET = LED1;
             //============================================================================
             //								Sensors update
             //============================================================================
@@ -719,7 +721,9 @@ int main(void) {
             StateUpdate(&allData_d);		//21us
 			
             //----------------Prepare frame---------
-            prepareFrame(&allData_d);	//333us
+			LED_PORT.OUTSET = LED1;
+            prepareFrame(&allData_d);	//748us
+			LED_PORT.OUTCLR = LED1;
             if(stan_d.flash_trigger){
 				SPI_WriteFrame(&SPIaddress, 128, (uint8_t *)(frame_b.frameASCII));
 				if(RTC_d.frameFlashCount < 999999UL) RTC_d.frameFlashCount++;
@@ -729,7 +733,7 @@ int main(void) {
 			
             //----------------Kalibracja------------
             if(Calibration_d.trigger) SensorCal();
-			LED_PORT.OUTCLR = LED1;
+			//LED_PORT.OUTCLR = LED1;
         }
     }
 }
