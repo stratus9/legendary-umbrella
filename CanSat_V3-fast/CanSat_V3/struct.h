@@ -63,12 +63,12 @@ typedef struct MPU9150_s{
 	float mag_z;
 	float mag_sum;
 	
-	int16_t offset_accel_x;
-	int16_t offset_accel_y;
-	int16_t offset_accel_z;
-	int16_t offset_gyro_x;
-	int16_t offset_gyro_y;
-	int16_t offset_gyro_z;
+	float offset_accel_x;
+	float offset_accel_y;
+	float offset_accel_z;
+	float offset_gyro_x;
+	float offset_gyro_y;
+	float offset_gyro_z;
 	int16_t offset_mag_x;
 	int16_t offset_mag_y;
 	int16_t offset_mag_z;
@@ -105,12 +105,12 @@ typedef struct LSM9DS0_s{
 	float mag_z;
 	float mag_sum;
 	
-	int16_t offset_accel_x;
-	int16_t offset_accel_y;
-	int16_t offset_accel_z;
-	int16_t offset_gyro_x;
-	int16_t offset_gyro_y;
-	int16_t offset_gyro_z;
+	float offset_accel_x;
+	float offset_accel_y;
+	float offset_accel_z;
+	float offset_gyro_x;
+	float offset_gyro_y;
+	float offset_gyro_z;
 	int16_t offset_mag_x;
 	int16_t offset_mag_y;
 	int16_t offset_mag_z;
@@ -409,7 +409,7 @@ typedef union {
 	};
 } FLASH_dataStruct_t;
 
-typedef struct{
+typedef struct {
 	uint16_t pageNo;
 	uint8_t position;
 	union{
@@ -418,7 +418,7 @@ typedef struct{
 	};
 }FLASH_pageStruct_t;
 
-typedef struct allData_s{
+typedef struct {
 	MPU9150_t * MPU9150;
 	LSM9DS0_t * LSM9DS0;
 	LPS25H_t * LPS25H;
@@ -432,9 +432,10 @@ typedef struct allData_s{
 	boardOrient_t * boardOrient;
 	RTC_t * RTC;
 	FLASH_pageStruct_t * FLASH_pageStruct;
+	Inertial_t * Inertial;
 } allData_t;
 
-typedef struct Inertial_s{
+typedef struct {
 	float accelX;
 	float accelY;
 	float accelZ;
@@ -444,7 +445,7 @@ typedef struct Inertial_s{
 	float positionX;
 	float positionY;
 	float positionZ;
-}Inertial_t;
-
+} Inertial_t;
+ 
 
 #endif /* STRUCT_H_ */

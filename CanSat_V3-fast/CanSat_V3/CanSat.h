@@ -88,15 +88,14 @@ void USART_SendCache(void);
 uint8_t I2C_ReadEnd(bool koniec);
 void structInit(void);
 void Initialization(void);
-bool DetectInitOrientation(allData_t *);
-bool DetectInitOrientationCont(allData_t *);
-void SensorDataFusion(allData_t *);
+void DetectInitOrientation(allData_t *);
 void PositionUpdate(allData_t *);
 void AccelerationCorrection(allData_t *);
 void VelocityUpdate(allData_t *);
 void OrientationUpdate(allData_t *);
-void UpdateFW(void);
-void TempUpdate(DS18B20_t *, frame_t *);
+
+
+void Kinematics(allData_t* allData_d);
 void SensorCal(void);
 void BT_Start(frame_t *);
 void SensorUpdate(allData_t *);
