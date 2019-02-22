@@ -23,6 +23,7 @@ void USART_Init(void);
 void IO_Init(void);
 void I2C_Init(void);
 void SPI_Init(void);
+void DMA_init();
 uint8_t ReadSignatureByte(uint16_t);
 void GPS_Conf(void);
 #endif /* INITIALIZATION_H_ */

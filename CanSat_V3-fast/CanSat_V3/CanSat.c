@@ -25,17 +25,17 @@
 #include "SPI.h"
 #include "ADC.h"
 #include "I2C.h"
+#include "orientation.h"
 
 //--------TO DO!!!!-----------
-//	+GPS
-//	+I2C
-//	+LED
-//	-RTC -zmieniono na timer F
-//	-DRY
-//	-IO
-//	+Buzzer
-//	-separacja
-
+//	+ Transfer do UART Xbee przez DMA
+//	- Zaimplementowaæ wyznaczanie orientacji
+//	- Zmieniæ obs³ugê Flash z SPI na UART SPI
+//	- Zapis w formacie binarnym
+//	- wywaliæ router pomiarów
+//	- dodaæ nowy algorytm wyznaczania orientacji
+//	- dodaæ wyznaczanie k¹t¹ odhcylenia od pionu
+//	+ dekodowanie wysokoœci z NMEA do liczby
 
 
 //-----------------------------------Struktury globalne---------------------------------------------
@@ -63,6 +63,8 @@ static float timer_buffer = 0;
 uint32_t mission_time = 0;
 uint32_t frame_count = 0;
 
+static orientation_t orientation_d;
+
 
 //----------------------Bad ISR handling------------------------
 ISR(BADISR_vect) {
@@ -81,7 +83,7 @@ ISR(RTC_OVF_vect){
 ISR(USARTF0_RXC_vect) {
     uint8_t i = 0;
     asm volatile("nop");
-    volatile char tmp = GPS_UART.DATA;
+    volatile CHAR tmp = GPS_UART.DATA;
     if(tmp == '$') {
         GPS_b.frame_start = true;
         GPSbuf_init(&GPS_b);
@@ -149,6 +151,7 @@ ISR(USARTF0_RXC_vect) {
                     GPS_b.altitude[i] = GPS_b.buffer[i];
                     i++;
                 }
+				GPS_toNumber(&GPS_b);	// 138us
                 GPS_d = GPS_b;	//przepisanie danych z bufora
                 break;
             default:
@@ -158,6 +161,7 @@ ISR(USARTF0_RXC_vect) {
     }
 }
 
+<<<<<<< HEAD
 //----------------------Send to Xbee--------------------------------
 ISR(USARTD0_TXC_vect) {
     if(frame_d.frameASCII[frame_d.iUART]) {
@@ -168,10 +172,12 @@ ISR(USARTD0_TXC_vect) {
     } else frame_d.mutex = false;
 }
 
+=======
+>>>>>>> origin/master
 //----------------------Receive from Xbee----------------------------
 ISR(USARTD0_RXC_vect) {
     LED_PORT.OUTSET = LED3;
-    char volatile tmp = XBEE_UART.DATA;
+    CHAR volatile tmp = XBEE_UART.DATA;
     if(tmp == '$') stan_d.cmd_mode = true;	//enter command mode
     else if((tmp == 'R') && stan_d.cmd_mode) {
         ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
@@ -281,14 +287,19 @@ ISR(TCE0_OVF_vect) {
 //----------------------Frame send------------------------------------
 ISR(TCF0_OVF_vect) {
     LED_PORT.OUTTGL = LED4;
-    frame_d.terminate = false;
+	
     if(stan_d.telemetry_trigger) {
         if(RTC_d.frameTeleCount< 99999) RTC_d.frameTeleCount++;
         else RTC_d.frameTeleCount = 0;
+<<<<<<< HEAD
 		//----- Begin transmission -----
         frame_d.iUART = 0;
 		//XBEE_UART.DATA = '$';	// alternatywnie 0 lub '\r'
         USARTD0_TXC_vect();
+=======
+		//----- Begin transmission ----
+		if(UART_Xbee_DMA_transfer_nonblocking_ready()) UART_Xbee_DMA_transfer_nonblocking_start(frame_d.frameASCII, frame_d.length);
+>>>>>>> origin/master
     }
 }
 
@@ -329,7 +340,7 @@ void Parachute2deploy(){
 
 //----------------------Memory erase---------------------------
 void FLASHerase(void) {
-    const char buf0[] = "\n\rMemory erased!\n\r\n\r\0";
+    const CHAR buf0[] = "\n\rMemory erased!\n\r\n\r\0";
     while((!(PORTE.IN & PIN0_bm)) || (!(PORTE.IN & PIN1_bm))) {}
     buzzer_d.mode = 3;																//sygna³ 2Hz
     buzzer_d.trigger = true;														//odblokowanie buzzera
@@ -345,8 +356,8 @@ void FLASHerase(void) {
 }
 
 void FLASH_saveData(allData_t * allData_d){
-	FLASH_dataStruct_t FLASH_struct_d;
-	FLASH_struct_d.marker = 0xAA;
+	//FLASH_dataStruct_t FLASH_struct_d;
+	//FLASH_struct_d.marker = 0xAA;
 	/*
 	FLASH_struct_d.IGN = allData_d->stan->IGN;
 	FLASH_struct_d.MFV = allData_d->stan->MFV;
@@ -406,13 +417,13 @@ void SensorCal(void) {
         Calibration_d.LSM_gyro_z += LSM9DS0_d.raw_gyro_z;
         Calibration_d.counter++;
     } else {
-        LPS25H_d.start_pressure = Calibration_d.LPS_pressure / calibrationCNT;
-        MPU9150_d.offset_gyro_x = Calibration_d.MPU_gyro_x / calibrationCNT;
-        MPU9150_d.offset_gyro_y = Calibration_d.MPU_gyro_y / calibrationCNT;
-        MPU9150_d.offset_gyro_z = Calibration_d.MPU_gyro_z / calibrationCNT;
-        LSM9DS0_d.offset_gyro_x = Calibration_d.LSM_gyro_x / calibrationCNT;
-        LSM9DS0_d.offset_gyro_y = Calibration_d.LSM_gyro_y / calibrationCNT;
-        LSM9DS0_d.offset_gyro_z = Calibration_d.LSM_gyro_z / calibrationCNT;
+        LPS25H_d.start_pressure = (float)Calibration_d.LPS_pressure / calibrationCNT;
+        MPU9150_d.offset_gyro_x = (float)Calibration_d.MPU_gyro_x / calibrationCNT;
+        MPU9150_d.offset_gyro_y = (float)Calibration_d.MPU_gyro_y / calibrationCNT;
+        MPU9150_d.offset_gyro_z = (float)Calibration_d.MPU_gyro_z / calibrationCNT;
+        LSM9DS0_d.offset_gyro_x = (float)Calibration_d.LSM_gyro_x / calibrationCNT;
+        LSM9DS0_d.offset_gyro_y = (float)Calibration_d.LSM_gyro_y / calibrationCNT;
+        LSM9DS0_d.offset_gyro_z = (float)Calibration_d.LSM_gyro_z / calibrationCNT;
         Calibration_d.counter = 0;
         Calibration_d.trigger = false;
         stan_d.callibration = false;
@@ -439,9 +450,11 @@ void structInit(void) {
 	allData_d.boardOrient = &boardOrient_d;
 	allData_d.RTC = &RTC_d;
 	allData_d.FLASH_pageStruct = &FLASH_pageStruct_d;
+	allData_d.Inertial = &Inertial_d;
 }
 
 void BT_Start(frame_t * frame) {
+<<<<<<< HEAD
     int i = 0;
     frame->frameASCII[i++] = '\r';	//\r\n+INQ=1\r\n
     frame->frameASCII[i++] = '\n';
@@ -458,6 +471,11 @@ void BT_Start(frame_t * frame) {
     frame->iUART = 0;
 	
 	USARTD0_TXC_vect();
+=======
+	sprintf((char*)frame->frameASCII, "\r\n+INQ=1\r\n");
+	UART_Xbee_DMA_transfer_blocking_start(frame->frameASCII, 10);
+		
+>>>>>>> origin/master
 	_delay_ms(100);
 }
 
@@ -477,10 +495,28 @@ void SensorUpdate(allData_t * allData) {
     //-----------------Read ADC-------------
     AnalogUpdate(allData->Analog);
 	
-	
-	//do router lub funkcji i wywaliæ jak najwiêcej!
     //-----------------Additional-----------
     if(LPS25H_d.altitude > LPS25H_d.max_altitude) LPS25H_d.max_altitude = LPS25H_d.altitude;
+}
+
+void SensorCompute(allData_t * allData){
+	//sprawdŸ poprawnoœæ pomiarów
+	//jakieœ lekkie filtrowanie?
+	//mo¿e uwzglêdnienie redundantnych czujników
+	
+	allData->SensorsData->accel_x = allData->MPU9150->accel_x;
+	allData->SensorsData->accel_y = allData->MPU9150->accel_y;
+	allData->SensorsData->accel_z = allData->MPU9150->accel_z;
+	
+	allData->SensorsData->gyro_x = allData->MPU9150->gyro_x;
+	allData->SensorsData->gyro_y = allData->MPU9150->gyro_y;
+	allData->SensorsData->gyro_z = allData->MPU9150->gyro_z;
+	
+	allData->SensorsData->mag_x = allData->MPU9150->mag_y;
+	allData->SensorsData->mag_y = allData->MPU9150->mag_x;
+	allData->SensorsData->mag_z = -allData->MPU9150->mag_z;
+	
+	//wrzucenie wyników do SensorData_d
 }
 
 void StateUpdate(allData_t * allData) {
@@ -501,7 +537,6 @@ void StateUpdate(allData_t * allData) {
 			}
 			if(SensorData_d.accel_x < 2) {
 				LPS25H_d.start_pressure = 0.9*LPS25H_d.start_pressure + 0.1*LPS25H_d.pressure;		//uaktualniaj ciœnienie na starcie
-				DetectInitOrientationCont(&allData_d);	//detect orientation and angle
 			}
 			if(SensorData_d.accel_x > 2) Buzzer1Beep();
 			LPS25H_d.max_altitude = LPS25H_d.altitude;	//uaktualniaj max wysokoœæ na starcie
@@ -587,6 +622,8 @@ void Initialization(void) {
     TimerFInit(telemetry_time);	//frame send
     structInit();
     I2C_Init();
+	DMA_init();
+	
     //--------MPU9150 Init-----------
     MPU9150_WakeUp();
     //-------LPS25H Init------------
@@ -606,7 +643,7 @@ void Initialization(void) {
 
 void InitMemoryErase() {
     uint32_t i = 0;
-    const char buf0[] = "\n\rMemory erased!\n\r\n\r\0";
+    const CHAR buf0[] = "\n\rMemory erased!\n\r\n\r\0";
     while((!(PORTE.IN & PIN0_bm)) || (!(PORTE.IN & PIN1_bm))) {}
     buzzer_d.mode = 3;																//sygna³ 2Hz
     buzzer_d.trigger = true;														//odblokowanie buzzera
@@ -622,21 +659,27 @@ void InitMemoryErase() {
 }
 
 void InitMemoryRead() {
+	while(!(PORTE.IN & PIN0_bm)) {}
     uint32_t i = 0;
     stan_d.flash_trigger = false;
     buzzer_d.mode = 3;																//sygna³ 2Hz
     buzzer_d.trigger = true;
     _delay_ms(200);
     buzzer_d.trigger = false;
+<<<<<<< HEAD
     while(!(PORTE.IN & PIN0_bm)) {}
     const char buf1[] = "\n\rID,TimeMS,FlightState,Bat,Altitude,Velocity,AccelX,AccelY,AccelZ,GyroX,GyroY,GyroZ,Lat,Long,AltiGPS\n\r\n\r\0";
     const char buf2[] = "\n\rReading done\n\r\n\r\0";
+=======
+    while(!(PORTE.IN & PIN1_bm)) {}
+    const CHAR buf1[] = "\n\rID,TimeMS,FlightState,Bat,Altitude,Velocity,AccelX,AccelY,AccelZ,GyroX,GyroY,GyroZ,Lat,Long,AltiGPS\n\r\n\r\0";
+    const CHAR buf2[] = "\n\rReading done\n\r\n\r\0";
+	
+>>>>>>> origin/master
     //------Hello message----------
-    while(buf1[i]) {
-        XBEE_UART.DATA = buf1[i++];
-        _delay_ms(10);
-    }
+    UART_Xbee_DMA_transfer_blocking_start((uint8_t*)buf1, 105);
     _delay_ms(1000);
+	
     //-------start Flash read------S
     uint8_t ch = 0xFF;
     uint8_t FFcnt = 0;
@@ -650,10 +693,13 @@ void InitMemoryRead() {
     do {
         ch = SPI_R_Byte();
         if(ch != 0xFF) {
+<<<<<<< HEAD
 			if(ch == '$') {
 				XBEE_UART.DATA = '\n';
 				_delay_us(100);
 			}
+=======
+>>>>>>> origin/master
             if(ch != 0) XBEE_UART.DATA = ch;
             FFcnt = 0;
         } else FFcnt++;
@@ -663,6 +709,7 @@ void InitMemoryRead() {
     } while((PORTE.IN & PIN0_bm) && (FFcnt < 100));
     SPI_CS(false);
 	
+<<<<<<< HEAD
 	//-------Reading done-------------
     i = 0;
     while(buf2[i]) {
@@ -672,6 +719,9 @@ void InitMemoryRead() {
 	
 	//-----Hang--------------
 	while(1) {}
+=======
+	UART_Xbee_DMA_transfer_blocking_start((uint8_t*)buf2, 18);
+>>>>>>> origin/master
 }
 
 void WarmUp() {
@@ -701,6 +751,7 @@ void WarmUpMemoryOperations() {
     else if(!(PORTE.IN & PIN0_bm)) InitMemoryRead();
 }
 
+<<<<<<< HEAD
 bool DetectInitOrientation(allData_t * allData){
 	//napisaæ funkcjê wykrywaj¹c¹ orientacjê na starcie
 	//----Local variable------------------------------------------------
@@ -925,9 +976,10 @@ void SensorDataFusion(allData_t * allData){
 	
 	//------ Velocity calc ------------------------------------
 	VelocityUpdate(allData);
+=======
+void DetectInitOrientation(allData_t * allData){
+>>>>>>> origin/master
 	
-	//------ Position update ----------------------------------
-	PositionUpdate(allData);
 }
 
 void PositionUpdate(allData_t * allData){
@@ -943,7 +995,15 @@ void VelocityUpdate(allData_t * allData){
 }
 
 void OrientationUpdate(allData_t * allData){
-	
+	Orientation_CalcOrientation(&SensorData_d, &orientation_d, PREFLIGHT);
+	Orientation_CalcKinematics(&Inertial_d, 1.0/sampling_rate, &orientation_d, &SensorData_d);
+}
+
+void Kinematics(allData_t* allData){
+	OrientationUpdate(allData);
+	AccelerationCorrection(allData);
+	VelocityUpdate(allData);
+	PositionUpdate(allData);
 }
 
 void CalibrationStart() {
@@ -952,10 +1012,16 @@ void CalibrationStart() {
     stan_d.callibration = true;
 }
 
+
+
 int main(void) {
     //_delay_ms(10);	//160ms przy 2MHZ na starcie
+<<<<<<< HEAD
     //sprawdznie poprawnoðci danych w strukturze
     frame_d.terminate = false;
+=======
+	
+>>>>>>> origin/master
     Initialization();
 	DetectInitOrientation(&allData_d);	//detect orientation and angle
 	WarmUp();					//odmiganie startu
@@ -965,32 +1031,48 @@ int main(void) {
     CalibrationStart();			//autocalibration
 	stan_d.flash_trigger = STARTUP_flash;
 	stan_d.telemetry_trigger = STARTUP_tele;
+<<<<<<< HEAD
 	stan_d.armed_trigger = STARTUP_armed;
+=======
+	stan_d.armed_trigger = true;
+>>>>>>> origin/master
 	
     while(1) {
         _delay_us(1);
         if(stan_d.new_data == true) {
+<<<<<<< HEAD
 			if(stan_d.armed_trigger) LED_PORT.OUTTGL = LED1;
 			else LED_PORT.OUTCLR = LED1;
+=======
+			//LED_PORT.OUTSET = LED1;
+>>>>>>> origin/master
             //============================================================================
             //								Sensors update
             //============================================================================
             stan_d.new_data = false;	//DRY flag clear
             SensorUpdate(&allData_d);		//2320us
-			SensorDataFusion(&allData_d);	//8us
+			SensorCompute(&allData_d);
+			Kinematics(&allData_d);	//
             StateUpdate(&allData_d);		//21us
 			
             //----------------Prepare frame---------
-            prepareFrame(&allData_d);	//333us
+			LED_PORT.OUTSET = LED1;
+            prepareFrame(&allData_d);	//748us
+			LED_PORT.OUTCLR = LED1;
             if(stan_d.flash_trigger){
 				SPI_WriteFrame(&SPIaddress, 128, (uint8_t *)(frame_b.frameASCII));
 				if(RTC_d.frameFlashCount < 999999UL) RTC_d.frameFlashCount++;
 				else RTC_d.frameFlashCount = 0;
 			}
             if(!(frame_d.mutex)) frame_d = frame_b;							//jeœli frame_d nie zablokowane -> przepisz z bufora
+<<<<<<< HEAD
             
+=======
+			
+>>>>>>> origin/master
             //----------------Kalibracja------------
             if(Calibration_d.trigger) SensorCal();
+			//LED_PORT.OUTCLR = LED1;
         }
     }
 }

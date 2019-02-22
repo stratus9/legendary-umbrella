@@ -12,6 +12,66 @@
 #ifndef STRUCT_H_
 #define STRUCT_H_
 
+#define CHAR uint8_t
+
+typedef union {
+	struct{
+		float w;
+		float x;
+		float y;
+		float z;
+	};
+	struct{
+		float q0;
+		float q1;
+		float q2;
+		float q3;
+	};
+} quaternion_t;
+
+typedef struct {
+	float ww;
+	float wx;
+	float wy;
+	float wz;
+	float xx;
+	float xy;
+	float xz;
+	float yy;
+	float yz;
+	float zz;
+} quaternionProd_t;
+
+typedef struct {
+	float roll;
+	float pitch;
+	float yaw;
+} EulerAngle_t;
+
+typedef union {
+	float v[3];
+	struct {
+		float x;
+		float y;
+		float z;
+	};
+} vector_t;
+
+typedef union {
+	int32_t v[3];
+	struct {
+		int32_t x;
+		int32_t y;
+		int32_t z;
+	};
+} vectorInt32_t;
+
+typedef struct {
+	quaternion_t quaternion;
+	float rMat[3][3];
+	EulerAngle_t euler;
+} orientation_t;
+
 //--------------------------struktura obs³ugi czujnika BMP085---------------------------------
 typedef struct BMP085_s{
 	bool data_ready;
@@ -61,12 +121,12 @@ typedef struct MPU9150_s{
 	float mag_z;
 	float mag_sum;
 	
-	int16_t offset_accel_x;
-	int16_t offset_accel_y;
-	int16_t offset_accel_z;
-	int16_t offset_gyro_x;
-	int16_t offset_gyro_y;
-	int16_t offset_gyro_z;
+	float offset_accel_x;
+	float offset_accel_y;
+	float offset_accel_z;
+	float offset_gyro_x;
+	float offset_gyro_y;
+	float offset_gyro_z;
 	int16_t offset_mag_x;
 	int16_t offset_mag_y;
 	int16_t offset_mag_z;
@@ -103,12 +163,12 @@ typedef struct LSM9DS0_s{
 	float mag_z;
 	float mag_sum;
 	
-	int16_t offset_accel_x;
-	int16_t offset_accel_y;
-	int16_t offset_accel_z;
-	int16_t offset_gyro_x;
-	int16_t offset_gyro_y;
-	int16_t offset_gyro_z;
+	float offset_accel_x;
+	float offset_accel_y;
+	float offset_accel_z;
+	float offset_gyro_x;
+	float offset_gyro_y;
+	float offset_gyro_z;
 	int16_t offset_mag_x;
 	int16_t offset_mag_y;
 	int16_t offset_mag_z;
@@ -166,13 +226,13 @@ typedef struct stan_s{
 //-------------------------------struktura obs³ugi interfejsu USART----------------
 typedef struct USART_s{
 	uint8_t in_i;			//licznik pozycji bufora wejœciowego
-	char in[50];			//bufer wejœciowy
+	CHAR in[50];			//bufer wejœciowy
 	bool in_inprogress;		//trwa odbiór
 	bool in_ready;			//odebrano ramkê
 	bool in_error;			//b³¹d odbioru
 	
 	uint8_t out_i;			//licznik pozycji bufora wejœciowego
-	char out[50];			//bufer wejœciowy
+	CHAR out[50];			//bufer wejœciowy
 	bool out_inprogress;	//trwa odbiór
 	bool out_ready;			//odebrano ramkê
 	bool out_error;			//b³¹d odbioru
@@ -218,35 +278,41 @@ typedef struct SensorsData_s{
 	float gyro_x;		//rotation rate in main axis
 	float gyro_y;		//rotation rate in second axis
 	float gyro_z;		//rotation rate in third axis
+<<<<<<< HEAD
 	float mag_x;		//rocket main axis
 	float mag_y;		//rocket second axis
 	float mag_z;		//rocket third axis
+=======
+	float mag_x;
+	float mag_y;
+	float mag_z;
+>>>>>>> origin/master
 	float batVoltage;
 	float inTemp;		//on-board highest mean temperature or overheated element temperature
 	float outTemp;		//external temperature sensor data
-	char latitude[13];
-	char longitude[13];
-	char fix;
-	char satNo[3];
+	CHAR latitude[13];
+	CHAR longitude[13];
+	CHAR fix;
+	CHAR satNo[3];
 	float thrust;		
 } SensorsData_t;
 
 //------------------------FRAME--------------------------------------------------
 typedef struct frame_s{
-	char frameASCII[600];
+	CHAR frameASCII[600];
 	uint16_t iUART;
+	uint16_t length;
 	bool mutex;
-	bool terminate;
 	float max_acc;
 	//GPS
-	char latitude[14];
-	char longitude[14];
-	char altitude[9];
+	CHAR latitude[14];
+	CHAR longitude[14];
+	CHAR altitude[9];
 } frame_t;
 
 //---------------------------------Bufor cykliczny-------------
 typedef struct ringBuffer_s{
-	char data[500];
+	CHAR data[500];
 	uint16_t bufferEnd;
 	uint16_t bufferStart;
 	uint8_t bufferCount;
@@ -263,13 +329,18 @@ typedef struct GPS_s{
 	uint8_t mm;
 	uint8_t ss;
 	uint8_t ms;
-	char latitude[14];
-	char longitude[14];
-	char altitude[10];
+	CHAR latitude[14];
+	CHAR longitude[14];
+	CHAR altitude[10];
+	
+	int32_t lat;
+	int32_t lon;
+	int32_t alti;
+	
 	uint8_t satelliteN;
 	uint8_t singnal;
 	uint8_t fix;
-	char buffer[20];
+	CHAR buffer[20];
 	uint8_t count;
 	uint8_t data_count;
 	bool valid;
@@ -403,14 +474,14 @@ typedef union {
 		float outTemp;		//external temperature sensor data
 		
 		//GPS
-		char gps_latitude[13];
-		char gps_longitude[13];
-		char gps_altitude[10];
-		char gps_fix;
+		CHAR gps_latitude[13];
+		CHAR gps_longitude[13];
+		CHAR gps_altitude[10];
+		CHAR gps_fix;
 	};
 } FLASH_dataStruct_t;
 
-typedef struct{
+typedef struct {
 	uint16_t pageNo;
 	uint8_t position;
 	union{
@@ -419,7 +490,19 @@ typedef struct{
 	};
 }FLASH_pageStruct_t;
 
-typedef struct allData_s{
+typedef struct {
+	float accelX_ng;
+	float accelY_ng;
+	float accelZ_ng;
+	float velocityX;
+	float velocityY;
+	float velocityZ;
+	float positionX;
+	float positionY;
+	float positionZ;
+} Inertial_t;
+
+typedef struct {
 	MPU9150_t * MPU9150;
 	LSM9DS0_t * LSM9DS0;
 	LPS25H_t * LPS25H;
@@ -433,19 +516,46 @@ typedef struct allData_s{
 	boardOrient_t * boardOrient;
 	RTC_t * RTC;
 	FLASH_pageStruct_t * FLASH_pageStruct;
+	Inertial_t * Inertial;
 } allData_t;
 
-typedef struct Inertial_s{
-	float accelX;
-	float accelY;
-	float accelZ;
-	float velocityX;
-	float velocityY;
-	float velocityZ;
-	float positionX;
-	float positionY;
-	float positionZ;
-}Inertial_t;
+typedef enum {
+	STARTUP,
+	INTERNAL_CHECK,
+	CALIBRATION,
+	PREFLIGHT,
+	PREPARATION_ERROR,
 
+	ME_STARTUP,
+	ME_ACCELERATING,
+	ME_ERROR,
+	MECO,
+	MECO_ERROR,
+
+	FREEFLIGH,
+
+	SE_STARTUP,
+	SE_ACCELRATING,
+	SE_ERROR,
+	SECO,
+	SECO_ERROR,
+
+	FREEFLIGHT2,
+	APOGEE,
+	FREEFALL,
+
+	DRAGSHUTE_DEPLOY,
+	DRAGSHUTE_FALL,
+	DRAGSHUTE_ERROR,
+
+	MAINSHUTE_DEPLOY,
+	MAINSHUTE_FALL,
+	MAINSHUTE_ERROR,
+
+	LANDING,
+
+	ABORT
+} flightState_t;
+ 
 
 #endif /* STRUCT_H_ */

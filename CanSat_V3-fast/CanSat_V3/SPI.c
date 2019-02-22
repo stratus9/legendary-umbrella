@@ -12,12 +12,13 @@
 #include <util/atomic.h>
 #include "struct.h"
 #include "SPI.h"
+#include "util.h"
 #include "CanSat.h"
 
 void SPI_W_Byte(uint8_t byte){
 	FLASH_SPI.DATA = byte;
 	while(!(FLASH_SPI.STATUS & SPI_IF_bm)){}
-	volatile char tmp = FLASH_SPI.DATA;
+	volatile uint8_t tmp = FLASH_SPI.DATA;
 }
 
 uint8_t SPI_R_Byte(void){
@@ -32,7 +33,7 @@ void SPI_CS(bool enable){
 }
 
 bool SPI_MemoryCheck(void){
-	char tmp1, tmp2, tmp3;
+	uint8_t tmp1, tmp2, tmp3;
 	SPI_CS(true);
 	SPI_W_Byte(0x9F);
 	tmp1 = SPI_R_Byte();	//BF
@@ -75,8 +76,8 @@ void SPI_ChipErase(void){
 	SPI_WriteDisable();
 }
 
-char SPI_Read(uint32_t address,uint16_t size, char * tablica){
-	char tmp=0;
+uint8_t SPI_Read(uint32_t address,uint16_t size, uint8_t * tablica){
+	uint8_t tmp=0;
 	SPI_CS(true);
 	SPI_W_Byte(0x03);					//Read
 	SPI_W_Byte((address>>16) & 0xFF);	//address MSB
@@ -91,8 +92,8 @@ char SPI_Read(uint32_t address,uint16_t size, char * tablica){
 	return tmp;
 }
 
-char SPI_ReadByte(uint32_t address){
-	char tmp;
+uint8_t SPI_ReadByte(uint32_t address){
+	uint8_t tmp;
 	SPI_CS(true);
 	SPI_W_Byte(0x03);					//Read
 	SPI_W_Byte((address>>16) & 0xFF);	//address MSB
@@ -115,7 +116,11 @@ void SPI_WriteByte(uint32_t address, uint8_t data){
 	//SPI_WriteDisable();
 }
 
+<<<<<<< HEAD
 void SPI_WriteNBytes(uint32_t address, uint8_t * data, uint8_t len){
+=======
+void SPI_WriteNBytes(uint32_t address, uint8_t * data, uint16_t len){
+>>>>>>> origin/master
 	SPI_WriteReady();
 	SPI_WriteEnable();
 	
@@ -124,6 +129,11 @@ void SPI_WriteNBytes(uint32_t address, uint8_t * data, uint8_t len){
 	SPI_W_Byte((address>>16) & 0xFF);	//address MSB
 	SPI_W_Byte((address>>8) & 0xFF);	//address cd.
 	SPI_W_Byte( address & 0xFF);		//address LSB
+<<<<<<< HEAD
+=======
+	
+	//SPI_Flash_DMA_transfer_blocking_start(data, len);
+>>>>>>> origin/master
 	uint8_t i = 0;
 	while(i<len){
 		SPI_W_Byte(*data++);
@@ -132,7 +142,7 @@ void SPI_WriteNBytes(uint32_t address, uint8_t * data, uint8_t len){
 	SPI_CS(false);
 }
 
-void SPI_CmdSend(char cmd){
+void SPI_CmdSend(uint8_t cmd){
 	SPI_CS(true);		//rozpoczêcie transmisji
 	SPI_W_Byte(cmd);	//hardware End-of_Write
 	SPI_CS(false);		//zakoñczenie transmisji
@@ -142,7 +152,7 @@ void SPI_WriteReady(void)
 {
 	SPI_CS(true);
 	SPI_W_Byte(0x05);	//status register
-	volatile char ch = SPI_R_Byte();
+	volatile uint8_t ch = SPI_R_Byte();
 	do{
 		ch = SPI_R_Byte();
 	}while(ch & 0x01);

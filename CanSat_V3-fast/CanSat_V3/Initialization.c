@@ -117,7 +117,7 @@ void GPS_Init(void){
 void GPS_Conf(void){
 	/*
 	uint8_t i=0;
-	char buf[54] = "$PMTK314,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n\0\0";
+	CHAR buf[54] = "$PMTK314,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n\0\0";
 	while(buf[i]){
 		GPS_UART.DATA = buf[i];
 		while(!(GPS_UART.STATUS & USART_TXCIF_bm)){
@@ -139,8 +139,10 @@ void USART_Init(void){
 	int8_t BSCALE = 0b10100000;				//-6
 	XBEE_UART.BAUDCTRLA = (uint8_t)(BSEL&0x00FF);
 	XBEE_UART.BAUDCTRLB = (uint8_t)(((BSEL >> 8) & 0x000F) | BSCALE) ;
-	XBEE_UART.CTRLA |= USART_RXCINTLVL_LO_gc | USART_TXCINTLVL_HI_gc;		//odblokowanie przerwañ nadajnika i odbiornika, niski priorytet
+	XBEE_UART.CTRLA |= USART_RXCINTLVL_LO_gc /*| USART_TXCINTLVL_HI_gc*/;	//odblokowanie przerwañ nadajnika i odbiornika, niski priorytet
 	XBEE_UART.CTRLB |= USART_TXEN_bm | USART_RXEN_bm;						//w³¹czenie nadajnika i odbiornika USART
+	
+	
 }
 
 void IO_Init(void){
@@ -194,7 +196,7 @@ void IO_Init(void){
 void I2C_Init(void){
 	SENSORS_I2C.MASTER.CTRLA = TWI_MASTER_RIEN_bm | TWI_MASTER_WIEN_bm;		//ustawienie priorytetu przerwania na Low i w?aczenie przerwania od odbioru
 	SENSORS_I2C.MASTER.CTRLB = TWI_MASTER_SMEN_bm;                             //uruchomienie Smart Mode
-	SENSORS_I2C.MASTER.BAUD = 15;                                             //BAUD = 48 -> f=300kHz    BAUD = 21 -> f=600kHz
+	SENSORS_I2C.MASTER.BAUD = 15;                                             //BAUD = 48 -> f=300kHz    BAUD = 21 -> f=600kHz		BAUD = 15 -> f=800kHz
 	SENSORS_I2C.MASTER.CTRLA |= TWI_MASTER_ENABLE_bm;                          //w³¹czenie TWI
 	SENSORS_I2C.MASTER.STATUS = TWI_MASTER_BUSSTATE_IDLE_gc;                   //I2C wolne
 }
@@ -213,8 +215,14 @@ void SPI_Init(void){
 	//FLASH_SPI.INTCTRL = SPI_INTLVL_LO_gc;
 }
 
-uint8_t ReadSignatureByte(uint16_t Address)
-{
+void DMA_init(){
+	// konfiguracja kontrolera DMA
+	DMA.CTRL =	DMA_ENABLE_bm |                  // w³¹czenie kontrolera
+				DMA_DBUFMODE_DISABLED_gc |       // bez podwójnego buforowania
+				DMA_PRIMODE_RR0123_gc;           // wszystkie kana³y równy priorytet
+}
+
+uint8_t ReadSignatureByte(uint16_t Address){
 	NVM_CMD = NVM_CMD_READ_CALIB_ROW_gc;
 	uint8_t Result;
 	__asm__ ("lpm %0, Z\n" : "=r" (Result) : "z" (Address));

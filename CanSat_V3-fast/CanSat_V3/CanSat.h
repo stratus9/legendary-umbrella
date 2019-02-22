@@ -16,7 +16,11 @@
 #define CPU_clock		32							//czêstotliwoœæ taktowania procesora
 #define sampling_rate	100.0						//czêstotliwoœæ próbkowania w Hz
 #define sampling_time	1/sampling_rate*1000.0		//czas próbkowania w ms
+<<<<<<< HEAD
 #define telemetry_rate	4.0							//czêstotliwoœæ telemetrii
+=======
+#define telemetry_rate	1.0							//czêstotliwoœæ telemetrii
+>>>>>>> origin/master
 #define telemetry_time	1/telemetry_rate*1000.0		//czas telemetrii
 #define BUZZER_ONOFF	1							//wy³¹cznik buzzera
 #define STARTUP_tele	1							//telemetria wy³¹czona na starcie
@@ -88,18 +92,18 @@ void USART_SendCache(void);
 uint8_t I2C_ReadEnd(bool koniec);
 void structInit(void);
 void Initialization(void);
-bool DetectInitOrientation(allData_t *);
-bool DetectInitOrientationCont(allData_t *);
-void SensorDataFusion(allData_t *);
+void DetectInitOrientation(allData_t *);
 void PositionUpdate(allData_t *);
 void AccelerationCorrection(allData_t *);
 void VelocityUpdate(allData_t *);
 void OrientationUpdate(allData_t *);
-void UpdateFW(void);
-void TempUpdate(DS18B20_t *, frame_t *);
+
+
+void Kinematics(allData_t* allData_d);
 void SensorCal(void);
 void BT_Start(frame_t *);
 void SensorUpdate(allData_t *);
+void SensorCompute(allData_t * allData);
 void StateUpdate(allData_t *);
 void Buzzer2Beep(void);
 void Parachute1deploy();
