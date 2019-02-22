@@ -67,6 +67,7 @@ uint32_t frame_count = 0;
 //----------------------Bad ISR handling------------------------
 ISR(BADISR_vect) {
     LED_PORT.OUTTGL = LED2;
+	//asm("nop");
 }
 
 //----------------------RTC ISR handling------------------------
@@ -159,9 +160,9 @@ ISR(USARTF0_RXC_vect) {
 
 //----------------------Send to Xbee--------------------------------
 ISR(USARTD0_TXC_vect) {
-    if((frame_d.frameASCII[frame_d.iUART]) && (frame_d.frameASCII[frame_d.iUART] != '#')) {
-        if(frame_d.frameASCII[frame_d.iUART] == '%') XBEE_UART.DATA = '\n';
-        else XBEE_UART.DATA = frame_d.frameASCII[frame_d.iUART];
+    if(frame_d.frameASCII[frame_d.iUART]) {
+		frame_d.mutex = true;
+        XBEE_UART.DATA = frame_d.frameASCII[frame_d.iUART];
         if(frame_d.iUART < 200) frame_d.iUART++;
         else frame_d.frameASCII[frame_d.iUART] = 0;
     } else frame_d.mutex = false;
@@ -285,10 +286,9 @@ ISR(TCF0_OVF_vect) {
         if(RTC_d.frameTeleCount< 99999) RTC_d.frameTeleCount++;
         else RTC_d.frameTeleCount = 0;
 		//----- Begin transmission -----
-        frame_b.iUART = 0;
-		frame_d.mutex = true;
-		XBEE_UART.DATA = '$';	// alternatywnie 0 lub '\r'
-        //USARTD0_TXC_vect();
+        frame_d.iUART = 0;
+		//XBEE_UART.DATA = '$';	// alternatywnie 0 lub '\r'
+        USARTD0_TXC_vect();
     }
 }
 
@@ -453,7 +453,12 @@ void BT_Start(frame_t * frame) {
     frame->frameASCII[i++] = '1';
     frame->frameASCII[i++] = '\r';
     frame->frameASCII[i++] = '\n';
+	frame->frameASCII[i++] = 0;
+	frame->frameASCII[i++] = 0;
     frame->iUART = 0;
+	
+	USARTD0_TXC_vect();
+	_delay_ms(100);
 }
 
 void SensorUpdate(allData_t * allData) {
@@ -482,14 +487,15 @@ void StateUpdate(allData_t * allData) {
     if(!(stan_d.armed_trigger)) {
         stan_d.flightState = 0;
         buzzer_d.mode = 0;
-		//stan_d.flash_trigger = false;
+		stan_d.flash_trigger = false;
         PORTD_OUTCLR = PIN1_bm;
     } else {
         switch(stan_d.flightState) {
         //--------case 0 preflight-------------------------------------------
         case 0:
-            if((SensorData_d.accel_x > 3) && (LPS25H_d.velocity > 10)){		//wykrycie startu (Arecorder Acc+Alti) (Arecorder zapisuje kilkanaœcie próbek wstecz)
+            if((SensorData_d.accel_x > 3) /*&& (LPS25H_d.velocity > 10)*/){		//wykrycie startu (Arecorder Acc+Alti) (Arecorder zapisuje kilkanaœcie próbek wstecz)
 				stan_d.flash_trigger = true;
+				Buzzer2Beep();
 				if(dual_stage) stan_d.flightState = 1;	
 				else stan_d.flightState = 4;
 			}
@@ -591,8 +597,8 @@ void Initialization(void) {
     LSM9DS0_Init();
     //-------SPI Flash Init--------
     SPI_Init();
-    SPI_WriteProtection(false);
-    SPIaddress = SPI_FindEnd();		//szukaj wolnego miejsca w pamiêci------------------------------------------------
+    SPI_WriteProtection();
+    SPIaddress = SPI_FindEnd(128);		//szukaj wolnego miejsca w pamiêci------------------------------------------------
     //SPIaddress = 0;
     //-------w³¹czenie przerwañ----
     PMIC.CTRL = PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm;
@@ -622,8 +628,8 @@ void InitMemoryRead() {
     buzzer_d.trigger = true;
     _delay_ms(200);
     buzzer_d.trigger = false;
-    while(!(PORTE.IN & PIN1_bm)) {}
-    const char buf1[] = "\n\rTeam,TeleCnt,FlightState,SoftState,Altitude,Velocity,Accel,Gyro,Lat,Long,AltiGPS,Fix,Check,,Cnt,VoltageBat,VoltageVCC,Temp,Press,AccY,AccY2,GyroX,GyroZ,GyroY,\n\r\n\r\0";
+    while(!(PORTE.IN & PIN0_bm)) {}
+    const char buf1[] = "\n\rID,TimeMS,FlightState,Bat,Altitude,Velocity,AccelX,AccelY,AccelZ,GyroX,GyroY,GyroZ,Lat,Long,AltiGPS\n\r\n\r\0";
     const char buf2[] = "\n\rReading done\n\r\n\r\0";
     //------Hello message----------
     while(buf1[i]) {
@@ -644,42 +650,55 @@ void InitMemoryRead() {
     do {
         ch = SPI_R_Byte();
         if(ch != 0xFF) {
-            XBEE_UART.DATA = ch;
+			if(ch == '$') {
+				XBEE_UART.DATA = '\n';
+				_delay_us(100);
+			}
+            if(ch != 0) XBEE_UART.DATA = ch;
             FFcnt = 0;
         } else FFcnt++;
         i++;
-        if((i % 100) == 0) _delay_ms(10);
+        if((i % 128) == 0) _delay_ms(5);
         else _delay_us(100);
     } while((PORTE.IN & PIN0_bm) && (FFcnt < 100));
     SPI_CS(false);
+	
+	//-------Reading done-------------
     i = 0;
     while(buf2[i]) {
         XBEE_UART.DATA = buf2[i++];
         _delay_ms(1);
     }
+	
+	//-----Hang--------------
+	while(1) {}
 }
 
 void WarmUp() {
     //------Bluetooth bee init-----
     //_delay_ms(1000);
     BT_Start(&frame_d);
-    USARTD0_TXC_vect();
+	
     //------Hello blink
-    LED_PORT.OUTSET = LED2;
+    LED_PORT.OUTSET = LED1 | LED2 | LED3 | LED4 | LED5;
+    _delay_ms(200);
+    LED_PORT.OUTCLR = LED1;
     _delay_ms(200);
     LED_PORT.OUTCLR = LED2;
-    _delay_ms(100);
-    LED_PORT.OUTSET = LED2;
     _delay_ms(200);
-    LED_PORT.OUTCLR = LED2;
-    _delay_ms(100);
+    LED_PORT.OUTCLR = LED3;
+    _delay_ms(200);
+	LED_PORT.OUTCLR = LED4;
+	_delay_ms(200);
+	LED_PORT.OUTCLR = LED5;
+	_delay_ms(200);
 }
 
 void WarmUpMemoryOperations() {
     //----------------Kasowanie pamiêci Flash------------------------
     if((!(PORTE.IN & PIN0_bm)) && (!(PORTE.IN & PIN1_bm))) InitMemoryErase();
     //-----------------Odczyt z pamiêci i wys³anie po Xbee-----------
-    else if(!(PORTE.IN & PIN1_bm)) InitMemoryRead();
+    else if(!(PORTE.IN & PIN0_bm)) InitMemoryRead();
 }
 
 bool DetectInitOrientation(allData_t * allData){
@@ -742,9 +761,9 @@ bool DetectInitOrientationCont(allData_t * allData){
 	volatile float abs_mean_accZ = 0;
 	
 	//----Attach local pointer to main data struct----------------------
-	float * accX = &(allData->SensorsData->accel_x);
-	float * accY = &(allData->SensorsData->accel_y);
-	float * accZ = &(allData->SensorsData->accel_z);
+	float * accX = &(allData->MPU9150->accel_x);
+	float * accY = &(allData->MPU9150->accel_y);
+	float * accZ = &(allData->MPU9150->accel_z);
 	
 	float * mean_accX = &(allData->boardOrient->AccelX);
 	float * mean_accY = &(allData->boardOrient->AccelY);
@@ -769,9 +788,9 @@ bool DetectInitOrientationCont(allData_t * allData){
 	else allData->boardOrient->config = 3;																			//Z axis = main
 	
 	switch(allData->boardOrient->config){
-		case 1: if((*mean_accX) < 0.1) allData->boardOrient->invert = true; break;
-		case 2: if((*mean_accY) < 0.1) allData->boardOrient->invert = true; break;
-		case 3: if((*mean_accZ) < 0.1) allData->boardOrient->invert = true; break;
+		case 1: if((*mean_accX) < 0.1) allData->boardOrient->invert = true; else allData->boardOrient->invert = false; break;
+		case 2: if((*mean_accY) < 0.1) allData->boardOrient->invert = true; else allData->boardOrient->invert = false; break;
+		case 3: if((*mean_accZ) < 0.1) allData->boardOrient->invert = true; else allData->boardOrient->invert = false; break;
 	}
 	
 	//-------Calculate launchpad angle------------------------------------
@@ -788,12 +807,18 @@ void SensorDataFusion(allData_t * allData){
 	float MPU9150_gyro_x;
 	float MPU9150_gyro_y;
 	float MPU9150_gyro_z;
+	float MPU9150_mag_x;
+	float MPU9150_mag_y;
+	float MPU9150_mag_z;
 	float LSM9DS0_accel_x;
 	float LSM9DS0_accel_y;
 	float LSM9DS0_accel_z;
 	float LSM9DS0_gyro_x;
 	float LSM9DS0_gyro_y;
 	float LSM9DS0_gyro_z;
+	float LSM9DS0_mag_x;
+	float LSM9DS0_mag_y;
+	float LSM9DS0_mag_z;
 	float LIS331HH_accel_x;
 	float LIS331HH_accel_y;
 	float LIS331HH_accel_z;
@@ -808,12 +833,18 @@ void SensorDataFusion(allData_t * allData){
 		MPU9150_gyro_x = allData->MPU9150->gyro_x;
 		MPU9150_gyro_y = allData->MPU9150->gyro_y;
 		MPU9150_gyro_z = allData->MPU9150->gyro_z;
+		MPU9150_mag_x = allData->MPU9150->mag_x;
+		MPU9150_mag_y = allData->MPU9150->mag_y;
+		MPU9150_mag_z = allData->MPU9150->mag_z;
 		LSM9DS0_accel_x = allData->LSM9DS0->accel_x;
 		LSM9DS0_accel_y = allData->LSM9DS0->accel_y;
 		LSM9DS0_accel_z = allData->LSM9DS0->accel_z;
 		LSM9DS0_gyro_x = allData->LSM9DS0->gyro_x;
 		LSM9DS0_gyro_y = allData->LSM9DS0->gyro_y;
 		LSM9DS0_gyro_z = allData->LSM9DS0->gyro_z;
+		LSM9DS0_mag_x = allData->LSM9DS0->mag_x;
+		LSM9DS0_mag_y = allData->LSM9DS0->mag_y;
+		LSM9DS0_mag_z = allData->LSM9DS0->mag_z;
 		LIS331HH_accel_x = allData->LIS331HH->accel_x;
 		LIS331HH_accel_y = allData->LIS331HH->accel_y;
 		LIS331HH_accel_z = allData->LIS331HH->accel_z;
@@ -825,12 +856,18 @@ void SensorDataFusion(allData_t * allData){
 		MPU9150_gyro_x = allData->MPU9150->gyro_y;
 		MPU9150_gyro_y = allData->MPU9150->gyro_x;
 		MPU9150_gyro_z = allData->MPU9150->gyro_z;
+		MPU9150_mag_x = allData->MPU9150->mag_y;
+		MPU9150_mag_y = allData->MPU9150->mag_x;
+		MPU9150_mag_z = allData->MPU9150->mag_z;
 		LSM9DS0_accel_x = allData->LSM9DS0->accel_y;
 		LSM9DS0_accel_y = allData->LSM9DS0->accel_x;
 		LSM9DS0_accel_z = allData->LSM9DS0->accel_z;
 		LSM9DS0_gyro_x = allData->LSM9DS0->gyro_y;
 		LSM9DS0_gyro_y = allData->LSM9DS0->gyro_x;
 		LSM9DS0_gyro_z = allData->LSM9DS0->gyro_z;
+		LSM9DS0_mag_x = allData->LSM9DS0->mag_y;
+		LSM9DS0_mag_y = allData->LSM9DS0->mag_x;
+		LSM9DS0_mag_z = allData->LSM9DS0->mag_z;
 		LIS331HH_accel_x = allData->LIS331HH->accel_y;
 		LIS331HH_accel_y = allData->LIS331HH->accel_x;
 		LIS331HH_accel_z = allData->LIS331HH->accel_z;
@@ -842,12 +879,18 @@ void SensorDataFusion(allData_t * allData){
 		MPU9150_gyro_x = allData->MPU9150->gyro_z;
 		MPU9150_gyro_y = allData->MPU9150->gyro_y;
 		MPU9150_gyro_z = allData->MPU9150->gyro_x;
+		MPU9150_mag_x = allData->MPU9150->mag_z;
+		MPU9150_mag_y = allData->MPU9150->mag_y;
+		MPU9150_mag_z = allData->MPU9150->mag_x;
 		LSM9DS0_accel_x = allData->LSM9DS0->accel_z;
 		LSM9DS0_accel_y = allData->LSM9DS0->accel_y;
 		LSM9DS0_accel_z = allData->LSM9DS0->accel_x;
 		LSM9DS0_gyro_x = allData->LSM9DS0->gyro_z;
 		LSM9DS0_gyro_y = allData->LSM9DS0->gyro_y;
 		LSM9DS0_gyro_z = allData->LSM9DS0->gyro_x;
+		LSM9DS0_mag_x = allData->LSM9DS0->mag_z;
+		LSM9DS0_mag_y = allData->LSM9DS0->mag_y;
+		LSM9DS0_mag_z = allData->LSM9DS0->mag_x;
 		LIS331HH_accel_x = allData->LIS331HH->accel_z;
 		LIS331HH_accel_y = allData->LIS331HH->accel_y;
 		LIS331HH_accel_z = allData->LIS331HH->accel_x;
@@ -868,6 +911,9 @@ void SensorDataFusion(allData_t * allData){
 	allData->SensorsData->gyro_x = MPU9150_gyro_x;
 	allData->SensorsData->gyro_y = MPU9150_gyro_y;
 	allData->SensorsData->gyro_z = MPU9150_gyro_z;
+	allData->SensorsData->mag_x = LSM9DS0_mag_x;
+	allData->SensorsData->mag_y = LSM9DS0_mag_y;
+	allData->SensorsData->mag_z = LSM9DS0_mag_z;
 	allData->SensorsData->altitude = allData->LPS25H->altitude;
 	allData->SensorsData->ascentVelo = allData->LPS25H->velocity;
 	
@@ -909,20 +955,23 @@ void CalibrationStart() {
 int main(void) {
     //_delay_ms(10);	//160ms przy 2MHZ na starcie
     //sprawdznie poprawnoðci danych w strukturze
-    stan_d.flash_trigger = STARTUP_flash;
-    stan_d.telemetry_trigger = STARTUP_tele;
     frame_d.terminate = false;
     Initialization();
 	DetectInitOrientation(&allData_d);	//detect orientation and angle
+	WarmUp();					//odmiganie startu
     sei();
-    WarmUp();					//inicjalizacja BT i odmiganie startu
+	BT_Start(&frame_d);			//inicjalizacja BT
     WarmUpMemoryOperations();	//odczyt lub kasowanie pamiêci
     CalibrationStart();			//autocalibration
-	stan_d.armed_trigger = true;
+	stan_d.flash_trigger = STARTUP_flash;
+	stan_d.telemetry_trigger = STARTUP_tele;
+	stan_d.armed_trigger = STARTUP_armed;
 	
     while(1) {
         _delay_us(1);
         if(stan_d.new_data == true) {
+			if(stan_d.armed_trigger) LED_PORT.OUTTGL = LED1;
+			else LED_PORT.OUTCLR = LED1;
             //============================================================================
             //								Sensors update
             //============================================================================
@@ -934,12 +983,12 @@ int main(void) {
             //----------------Prepare frame---------
             prepareFrame(&allData_d);	//333us
             if(stan_d.flash_trigger){
-				SPI_WriteFrame(&SPIaddress, 400, &frame_b);
+				SPI_WriteFrame(&SPIaddress, 128, (uint8_t *)(frame_b.frameASCII));
 				if(RTC_d.frameFlashCount < 999999UL) RTC_d.frameFlashCount++;
 				else RTC_d.frameFlashCount = 0;
 			}
             if(!(frame_d.mutex)) frame_d = frame_b;							//jeœli frame_d nie zablokowane -> przepisz z bufora
-            LED_PORT.OUTTGL = LED1;
+            
             //----------------Kalibracja------------
             if(Calibration_d.trigger) SensorCal();
         }

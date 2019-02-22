@@ -64,13 +64,14 @@ uint8_t SPI_Status(void){
 }
 
 void SPI_ChipErase(void){
+	SPI_WriteReady();
 	SPI_WriteEnable();
 	SPI_CS(true);
-	SPI_W_Byte(0x60);	//Chip erase
+	SPI_W_Byte(0xC7);	//Chip erase
 	SPI_CS(false);
 	_delay_us(100);
 	
-	SPI_WriteFin();
+	SPI_WriteReady();
 	SPI_WriteDisable();
 }
 
@@ -114,27 +115,21 @@ void SPI_WriteByte(uint32_t address, uint8_t data){
 	//SPI_WriteDisable();
 }
 
-void SPI_WriteProtection(bool block){
-	if(block){
-		SPI_CS(true);
-		SPI_W_Byte(0x50);	//Enable-Write-StatusRegister
-		SPI_CS(false);
-		_delay_us(1);
-		SPI_CS(true);
-		SPI_W_Byte(0x01);	//Write-Status-Register
-		SPI_W_Byte(0x1C);	//Protect memory
-		SPI_CS(false);
+void SPI_WriteNBytes(uint32_t address, uint8_t * data, uint8_t len){
+	SPI_WriteReady();
+	SPI_WriteEnable();
+	
+	SPI_CS(true);
+	SPI_W_Byte(0x02);					//Write
+	SPI_W_Byte((address>>16) & 0xFF);	//address MSB
+	SPI_W_Byte((address>>8) & 0xFF);	//address cd.
+	SPI_W_Byte( address & 0xFF);		//address LSB
+	uint8_t i = 0;
+	while(i<len){
+		SPI_W_Byte(*data++);
+		i++;
 	}
-	else{
-		SPI_CS(true);
-		SPI_W_Byte(0x50);	//Enable-Write-StatusRegister
-		SPI_CS(false);
-		_delay_us(1);
-		SPI_CS(true);
-		SPI_W_Byte(0x01);	//Write-Status-Register
-		SPI_W_Byte(0x00);	//Unprotect memory
-		SPI_CS(false);
-	}
+	SPI_CS(false);
 }
 
 void SPI_CmdSend(char cmd){
@@ -143,66 +138,18 @@ void SPI_CmdSend(char cmd){
 	SPI_CS(false);		//zakoñczenie transmisji
 }
 
-void SPI_AAI_Mode_Start(void){
-	SPI_WriteEnable();
-	_delay_us(1);
-	SPI_CmdSend(0x70);	//Hardware End-of_Write
-	_delay_us(1);
-}
-
-void SPI_AAI_Mode_Stop(void){
-	SPI_WriteDisable();
-	_delay_us(1);
-	SPI_CmdSend(0x80);	//Hardware End-of_Write disable
-	_delay_us(1);
-}
-
-/*  Coœ do poprawy!!!!!!!!!!!!!!!!!!1
-void SPI_PagueWrite(uint16_t page, uint16_t page_length, frame_t * frame){
-	uint16_t i = 0;
-	SPI_AAI_Mode_Start();				//konfiguracja transmisji AAI
-	
-	SPI_CS(true);						//rozpoczêcie transmisji
-	SPI_W_Byte(0x02);					//polecenie zapisu strony
-	uint32_t adres = page*page_length;	//calculate start address
-	SPI_W_Byte((adres>>16) & 0xFF);		//address MSB
-	SPI_W_Byte((adres>>8) & 0xFF);		//address cd.
-	SPI_W_Byte(adres & 0xFF);			//address LSB
-	//data start
-	while(i<page_length){
-		SPI_W_Byte(frame->frameASCII[i++]);
-		SPI_W_Byte(frame->frameASCII[i++]);
-		while(PORTC.IN & PIN6_bm){}
-	}
-	SPI_CS(false);						//zakoñczenie transmisji
-	_delay_us(1);
-	SPI_AAI_Mode_Stop();				//exit AAI mode
-}*/
-
-void SPI_WriteFin(void){
+void SPI_WriteReady(void)
+{
 	SPI_CS(true);
 	SPI_W_Byte(0x05);	//status register
 	volatile char ch = SPI_R_Byte();
 	do{
 		ch = SPI_R_Byte();
-	}
-	while(ch & 0x01);
+	}while(ch & 0x01);
 	SPI_CS(false);
 }
 
-/*
-void SPI_PageWrite(uint16_t page, uint16_t page_length, frame_t * frame){
-	uint16_t i = 0;
-	while(i < page_length){
-		uint32_t adres = page*page_length+i;	//calculate start address
-		SPI_WriteByte(adres,frame->frameASCII[i++]);
-		SPI_WriteFin();
-		PORTA_OUTTGL = PIN2_bm;
-	}
-}
-*/
-
-uint32_t SPI_FindEnd(void){
+uint32_t SPI_FindEnd(uint32_t length){
 	SPI_CS(true);
 	SPI_W_Byte(0x03);			//Read
 	SPI_W_Byte(0);				//address MSB
@@ -211,18 +158,21 @@ uint32_t SPI_FindEnd(void){
 	uint32_t n=0;
 	while((n < 4100000) && (SPI_R_Byte() != 0xFF)) n++;	//szukaj pocz¹tku wolnej pamiêci (0xFF)
 	SPI_CS(false);
+	if(n%length) n = n+length-n%length;
 	return n;
 }
 
-void SPI_WriteFrame(uint32_t * adres, uint16_t frame_length, frame_t * frame){
-	uint32_t i = 0;
+
+void SPI_WriteFrame(uint32_t * adres, uint16_t frame_length, uint8_t * frame){
 	if((*adres) < 4194000){
-		PORTA_OUTSET = PIN2_bm;
-		while((frame->frameASCII[i]) && (i<frame_length)){
-			SPI_WriteByte((*adres),frame->frameASCII[i++]);
-			SPI_WriteFin();
-			(*adres)++;			//address increment
-		}
-		PORTA_OUTCLR = PIN2_bm;
+		SPI_WriteReady();	//sprawdzenie czy pamiêæ gotowa
+		SPI_WriteNBytes((*adres), frame, frame_length);	//d³ugoœæ musi byæ wielokrotnoœci¹ 2
+		*adres += frame_length;
+		PORTA_OUTTGL = PIN2_bm;
 	}
+}
+
+void SPI_WriteProtection() {
+	SPI_WriteEnable();
+	SPI_CmdSend(0x98);	//odblokuj wszystko
 }

@@ -218,6 +218,9 @@ typedef struct SensorsData_s{
 	float gyro_x;		//rotation rate in main axis
 	float gyro_y;		//rotation rate in second axis
 	float gyro_z;		//rotation rate in third axis
+	float mag_x;		//rocket main axis
+	float mag_y;		//rocket second axis
+	float mag_z;		//rocket third axis
 	float batVoltage;
 	float inTemp;		//on-board highest mean temperature or overheated element temperature
 	float outTemp;		//external temperature sensor data
